@@ -623,25 +623,33 @@ label u_mashiny:
 
     $ dice_needed = 1 if ponyuhala_volosy else 2
 
+    # Пулы кубиков считаются из листа персонажа (character_sheet_damien.rpy),
+    # а не прописаны руками — если статы Дамьена изменятся, тут пересчитается
+    # само. "Пошутить" и "Быть романтичным" — попытки именно соблазнить Клэр,
+    # поэтому у Убеждения применяется специализация "соблазнение" (+1 куб.).
+    $ pool_silent   = cs_dice_pool("Сила", "Скрытность")
+    $ pool_joke     = cs_dice_pool("Харизма", "Убеждение", specialization="соблазнение")
+    $ pool_romantic = cs_dice_pool("Самообладание", "Убеждение", specialization="соблазнение")
+
     menu:
-        "Молча съесть её\n[[Проверка: Strength + Stealth, 3 кубика]":
-            $ roll_dice(3)
+        "Молча съесть её\n[[Проверка: Сила + Скрытность, [pool_silent] куб.]":
+            $ roll_dice(pool_silent)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump molcha_uspeh
             else:
                 jump molcha_proval
 
-        "Пошутить\n[[Проверка: Charisma + Persuasion (Seduction), 8 кубиков]" if slushal_pro_ostin:
-            $ roll_dice(8)
+        "Пошутить\n[[Проверка: Харизма + Убеждение (соблазнение), [pool_joke] куб.]" if slushal_pro_ostin:
+            $ roll_dice(pool_joke)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump poshutit_uspeh
             else:
                 jump poshutit_proval
 
-        "Быть романтичным\n[[Проверка: Composure + Persuasion (Seduction), 5 кубиков]":
-            $ roll_dice(5)
+        "Быть романтичным\n[[Проверка: Самообладание + Убеждение (соблазнение), [pool_romantic] куб.]":
+            $ roll_dice(pool_romantic)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump romantika_uspeh

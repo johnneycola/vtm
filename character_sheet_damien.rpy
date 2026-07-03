@@ -1,9 +1,13 @@
 # ============================================================
 #  ЛИСТ ПЕРСОНАЖА — Дамьен «Damn» Грегори (Vampire: The Masquerade)
-#  Отдельный файл. Никуда не подключён в script.rpy — только
-#  определение экрана. Чтобы посмотреть его, можно временно
-#  вызвать `call screen character_sheet_damien` из консоли
-#  разработчика (Shift+O) или добавить тестовый label.
+#
+#  Открывается/закрывается через Show()/Hide(), а не через
+#  call screen — так его можно вызвать в любой момент поверх
+#  игры (см. кнопку в углу экрана в character_sheet_button.rpy),
+#  не завязываясь на сюжетный стек call/return.
+#
+#      action Show("character_sheet_damien")   # открыть
+#      action Hide("character_sheet_damien")   # закрыть
 # ============================================================
 
 init python:
@@ -17,6 +21,66 @@ init python:
         """Галочки для человечности: ✓ ✓ ✓ □ □"""
         filled = max(0, min(filled, maximum))
         return (u"\u2713 " * filled) + (u"\u25A1 " * (maximum - filled))
+
+    def cs_find_stat_entry(name):
+        """Ищет атрибут или навык по точному названию, возвращает
+        (значение, список_специализаций). У атрибутов специализаций
+        не бывает — для них вернётся пустой список.
+
+        Специально бросает ошибку, если название не найдено — если в
+        проверке опечататься в названии, это сразу будет видно (краш
+        с понятным сообщением), а не тихо даст 0 кубиков в проверке."""
+        for label, value in (cs_attr_physical + cs_attr_social + cs_attr_mental):
+            if label == name:
+                return value, []
+        for label, value, specs in (cs_skills_physical + cs_skills_social + cs_skills_mental):
+            if label == name:
+                return value, specs
+        raise Exception(
+            "cs_find_stat_entry: на листе персонажа нет атрибута/навыка с названием '%s'. "
+            "Проверь точное написание в cs_attr_*/cs_skills_* в character_sheet_damien.rpy."
+            % name
+        )
+
+    def cs_find_stat(name):
+        """Возвращает только значение атрибута/навыка (без специализаций)."""
+        value, _ = cs_find_stat_entry(name)
+        return value
+
+    def cs_skill_label(name, specs):
+        """Формирует подпись навыка со специализациями в скобках,
+        как принято в VtM: 'Убеждение (соблазнение)'."""
+        if specs:
+            return u"%s (%s)" % (name, u", ".join(specs))
+        return name
+
+    def cs_dice_pool(*names, **kwargs):
+        """Считает пул кубиков для проверки: сумма указанных атрибутов
+        и/или навыков + бонус за специализацию (если указана и совпадает
+        с одной из специализаций хотя бы одного из навыков) + свободный
+        бонус.
+
+        Пример без специализации:
+            cs_dice_pool("Сила", "Скрытность")
+
+        Пример со специализацией — если Дамьен убеждает через соблазнение,
+        а не как-то иначе, добавляется +1 за специализацию навыка:
+            cs_dice_pool("Харизма", "Убеждение", specialization="соблазнение")
+
+        Пример с произвольным бонусом:
+            cs_dice_pool("Харизма", "Обман", bonus=1)
+        """
+        bonus = kwargs.get("bonus", 0)
+        specialization = kwargs.get("specialization", None)
+        norm_spec = specialization.strip().lower() if specialization else None
+
+        total = bonus
+        for name in names:
+            value, specs = cs_find_stat_entry(name)
+            total += value
+            if norm_spec and any(norm_spec == s.strip().lower() for s in specs):
+                total += 1
+        return total
 
 
 # ---------------------------------------------------------------
@@ -36,20 +100,25 @@ default cs_attr_physical = [("Сила", 2), ("Ловкость", 3), ("Выно
 default cs_attr_social   = [("Харизма", 4), ("Манипуляция", 3), ("Самообладание", 3)]
 default cs_attr_mental   = [("Интеллект", 3), ("Сообразительность", 3), ("Решимость", 2)]
 
+# Формат записи навыка: (название, значение, [список специализаций]).
+# Специализация даёт +1 кубик, если конкретная проверка ей соответствует
+# (передаётся через cs_dice_pool(..., specialization="...")). Навыков без
+# специализации — пустой список.
+
 default cs_skills_physical = [
-    ("Атлетика", 1), ("Драка", 2), ("Ремесло", 0), ("Вождение", 2),
-    ("Стрельба", 1), ("Кражи", 0), ("Холодное оружие", 1),
-    ("Скрытность", 1), ("Выживание", 0),
+    ("Атлетика", 1, []), ("Драка", 2, []), ("Ремесло", 0, []), ("Вождение", 2, []),
+    ("Стрельба", 1, []), ("Кражи", 0, []), ("Холодное оружие", 1, []),
+    ("Скрытность", 1, []), ("Выживание", 0, []),
 ]
 default cs_skills_social = [
-    ("Обращение с животными", 0), ("Этикет", 1), ("Проницательность", 2),
-    ("Запугивание", 1), ("Лидерство (группа)", 2), ("Выступление (гитара, вокал)", 3),
-    ("Убеждение (соблазнение)", 3), ("Уличное чутьё", 2), ("Обман", 3),
+    ("Обращение с животными", 0, []), ("Этикет", 1, []), ("Проницательность", 2, []),
+    ("Запугивание", 1, []), ("Лидерство", 2, ["группа"]), ("Выступление", 3, ["гитара", "вокал"]),
+    ("Убеждение", 3, ["соблазнение"]), ("Уличное чутьё", 2, []), ("Обман", 3, []),
 ]
 default cs_skills_mental = [
-    ("Академические знания", 0), ("Внимательность", 1), ("Финансы", 0),
-    ("Расследование", 0), ("Медицина", 0), ("Оккультизм", 0),
-    ("Политика", 0), ("Наука", 0), ("Технологии", 0),
+    ("Академические знания", 0, []), ("Внимательность", 1, []), ("Финансы", 0, []),
+    ("Расследование", 0, []), ("Медицина", 0, []), ("Оккультизм", 0, []),
+    ("Политика", 0, []), ("Наука", 0, []), ("Технологии", 0, []),
 ]
 
 # powers: список (название, описание)
@@ -131,11 +200,15 @@ default cs_rank = "—"
 # ---------------------------------------------------------------
 # Экран листа персонажа
 #
-# Панель не имеет фиксированной высоты — она автоматически
-# подстраивается под объём содержимого текущей страницы
-# (фиксирована только ширина). Прокрутки нет: если контент
-# всё же не влезает по высоте на конкретном экране, дай знать —
-# добавим viewport обратно.
+# Ширина панели фиксирована. Высота — тоже: заголовок и
+# переключатель страниц не прокручиваются, а под ними в фиксированной
+# по высоте области (cs_viewport) крутится содержимое конкретной
+# страницы — так на любой странице появляется скролл, если контент
+# не влезает, а сама панель не растягивается на весь экран и на
+# любом разрешении остаётся отступ сверху и снизу.
+#
+# Если хочется больше/меньше видимой области — поменяй ysize у
+# viewport ниже (сейчас 520).
 # ---------------------------------------------------------------
 
 screen character_sheet_damien():
@@ -155,81 +228,107 @@ screen character_sheet_damien():
         background Solid("#5c1a1a")
         padding (3, 3)
 
-        frame:
+        # fixed — чтобы крестик закрытия лежал поверх содержимого
+        # отдельным слоем и не был частью прокручиваемой области.
+        # fit_first True — иначе fixed по умолчанию растягивается на
+        # всё доступное место, а не подстраивается под размер панели.
+        fixed:
             xsize 1200
-            background Solid("#141014")
-            padding (44, 30)
+            fit_first True
 
-            vbox:
-                spacing 10
-                xsize 1112
+            frame:
+                xsize 1200
+                background Solid("#141014")
+                padding (44, 30)
 
-                # ---------- Шапка ----------
-                text "VAMPIRE" size 40 color "#d8d8d8" xalign 0.5
-                text "T H E   M A S Q U E R A D E" size 14 color "#8a8a8a" xalign 0.5
-
-                null height 6
-
-                hbox:
+                vbox:
+                    spacing 10
                     xsize 1112
 
-                    add "damien_sprite":
-                        xsize 110
-                        ysize 110
+                    # ---------- Шапка (не прокручивается) ----------
+                    text "VAMPIRE" size 40 color "#d8d8d8" xalign 0.5
+                    text "T H E   M A S Q U E R A D E" size 14 color "#8a8a8a" xalign 0.5
 
-                    null width 20
+                    null height 6
 
-                    vbox:
-                        spacing 2
-                        xsize 640
-                        text "[cs_name]" size 26 color "#ffffff"
-                        text "Клан: [cs_clan]" size 15 color "#bbbbbb"
-                        text "Тип хищника: [cs_predator]   •   Поколение: [cs_generation]" size 15 color "#bbbbbb"
+                    hbox:
+                        xsize 1112
 
-                    vbox:
-                        xsize 342
-                        text "Амбиция: [cs_ambition]" size 14 color "#999999" xalign 1.0
-                        text "Желание: [cs_desire]" size 14 color "#999999" xalign 1.0
+                        add "damien_sprite":
+                            xsize 110
+                            ysize 110
 
-                null height 4
-                add Solid("#5c1a1a"):
-                    xsize 1112
-                    ysize 2
+                        null width 20
 
-                # ---------- Переключатель страниц ----------
-                hbox:
-                    xalign 0.5
-                    spacing 16
+                        vbox:
+                            spacing 2
+                            xsize 640
+                            text "[cs_name]" size 26 color "#ffffff"
+                            text "Клан: [cs_clan]" size 15 color "#bbbbbb"
+                            text "Тип хищника: [cs_predator]   •   Поколение: [cs_generation]" size 15 color "#bbbbbb"
 
-                    textbutton "Страница 1 — Лист":
-                        action SetScreenVariable("cs_page", 1)
-                        text_color "#888888"
-                        text_hover_color "#ffffff"
-                        text_selected_color "#cc3333"
-                        selected (cs_page == 1)
+                        vbox:
+                            xsize 342
+                            text "Амбиция: [cs_ambition]" size 14 color "#999999" xalign 1.0
+                            text "Желание: [cs_desire]" size 14 color "#999999" xalign 1.0
 
-                    textbutton "Страница 2 — Биография":
-                        action SetScreenVariable("cs_page", 2)
-                        text_color "#888888"
-                        text_hover_color "#ffffff"
-                        text_selected_color "#cc3333"
-                        selected (cs_page == 2)
+                    null height 4
+                    add Solid("#5c1a1a"):
+                        xsize 1112
+                        ysize 2
 
-                null height 4
+                    # ---------- Переключатель страниц (не прокручивается) ----------
+                    hbox:
+                        xalign 0.5
+                        spacing 16
 
-                # ---------- Содержимое ----------
-                if cs_page == 1:
-                    use cs_sheet_page_1
-                else:
-                    use cs_sheet_page_2
+                        textbutton "Страница 1 — Лист":
+                            action SetScreenVariable("cs_page", 1)
+                            text_color "#888888"
+                            text_hover_color "#ffffff"
+                            text_selected_color "#cc3333"
+                            selected (cs_page == 1)
 
-                null height 8
-                textbutton "Закрыть":
-                    action Return()
-                    xalign 0.5
-                    text_size 20
-                    text_color "#cccccc"
-                    text_hover_color "#ffffff"
+                        textbutton "Страница 2 — Биография":
+                            action SetScreenVariable("cs_page", 2)
+                            text_color "#888888"
+                            text_hover_color "#ffffff"
+                            text_selected_color "#cc3333"
+                            selected (cs_page == 2)
+
+                    null height 8
+
+                    # ---------- Содержимое (прокручивается) ----------
+                    viewport:
+                        id "cs_viewport"
+                        xsize 1112
+                        ysize 520
+                        scrollbars "vertical"
+                        mousewheel True
+                        draggable True
+
+                        vbox:
+                            spacing 16
+                            xsize 1088
+
+                            if cs_page == 1:
+                                use cs_sheet_page_1
+                            else:
+                                use cs_sheet_page_2
+
+            # ---------- Крестик закрытия ----------
+            # Лежит поверх панели отдельным слоем (внутри fixed, а не
+            # внутри viewport), поэтому при скролле контента остаётся
+            # на месте — в правом верхнем углу.
+            textbutton "✕":
+                action Hide("character_sheet_damien")
+                xalign 1.0
+                yalign 0.0
+                xoffset -18
+                yoffset 14
+                text_size 28
+                text_color "#999999"
+                text_hover_color "#ffffff"
 
 
 # ---------------------------------------------------------------
@@ -280,23 +379,23 @@ screen cs_sheet_page_1():
 
             vbox:
                 spacing 3
-                for label, val in cs_skills_physical:
+                for name, val, specs in cs_skills_physical:
                     hbox:
-                        text label size 14 color "#cccccc" xsize 190
+                        text cs_skill_label(name, specs) size 14 color "#cccccc" xsize 190
                         text cs_dots(val, 5) size 14 color "#cc3333"
 
             vbox:
                 spacing 3
-                for label, val in cs_skills_social:
+                for name, val, specs in cs_skills_social:
                     hbox:
-                        text label size 14 color "#cccccc" xsize 240
+                        text cs_skill_label(name, specs) size 14 color "#cccccc" xsize 240
                         text cs_dots(val, 5) size 14 color "#cc3333"
 
             vbox:
                 spacing 3
-                for label, val in cs_skills_mental:
+                for name, val, specs in cs_skills_mental:
                     hbox:
-                        text label size 14 color "#cccccc" xsize 190
+                        text cs_skill_label(name, specs) size 14 color "#cccccc" xsize 190
                         text cs_dots(val, 5) size 14 color "#cc3333"
 
         # ---------- Дисциплины ----------
