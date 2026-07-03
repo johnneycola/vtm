@@ -21,293 +21,55 @@ define stranger = Character('Незнакомка', color="#ff4dff", image="clai
 default ponyuhala_volosy = False
 default slushal_pro_ostin = False
 
-# Переменные для броска кубиков
-default dice_rolls = []
-default dice_successes = 0
-default dice_needed = 2
-
 # Переменные звуков
 default saw_sound_event = False
 
-# ── Мини-игра питания ──────────────────────────────────────────────
-# feeding_difficulty  : 1 или 2 (определяет размер зелёной зоны)
-# feeding_speed       : скорость курсора (0.0–1.0 за секунду), задаётся перед вызовом
-# feeding_victim_dice : кол-во d10 для проверки жертвы (скрытый бросок)
-# feeding_result      : итог после мини-игры ("safe" / "unconscious" / "dead")
-# feeding_blood       : сколько точек крови выпито
-default feeding_difficulty = 2
-default feeding_speed = 0.004
-default feeding_victim_dice = 4
-default feeding_result = "safe"
-default feeding_blood = 0
-
-init python:
-    import random
-
-    def roll_dice(pool):
-        """Бросает pool кубиков d10, возвращает список результатов и считает успехи (6+)."""
-        store.dice_rolls = []
-        store.dice_successes = 0
-        for i in range(pool):
-            roll = random.randint(1, 10)
-            store.dice_rolls.append(roll)
-            if roll >= 6:
-                store.dice_successes += 1
-
-    def feeding_victim_check(blood_points, victim_dice):
-        """Скрытый бросок: нужно собрать blood_points успехов из victim_dice кубиков."""
-        successes = sum(1 for _ in range(victim_dice) if random.randint(1, 10) >= 6)
-        return successes >= blood_points
-
-    def calc_feeding_zone(difficulty):
-        """Размер зелёной зоны как доля от высоты шкалы."""
-        if difficulty == 1:
-            return 1.0 / 6.0
-        else:
-            return 1.0 / 7.0
-
-# Высота шкалы в пикселях и ширина
-define TRACK_H = 500
-define TRACK_W = 60
-define CURSOR_H = 20
-
-screen feeding_rules():
-    modal True
-    frame:
-        xalign 0.5
-        yalign 0.5
-        xsize 600
-        padding (30, 30)
-        vbox:
-            spacing 16
-            text "Как пить кровь" size 32 color "#cc3333" xalign 0.5
-            text "На шкале движется курсор — вверх и вниз." size 22 color "#ffffff"
-            text "Красная зона — момент когда можно остановиться." size 22 color "#ffffff"
-            text "Нажми в нужный момент чтобы прекратить питание." size 22 color "#ffffff"
-            text "Каждый полный проход вверх-вниз = +1 точка крови." size 22 color "#ffffff"
-            text "Ты начинаешь с 1 точкой. После 5 точек — жертва умирает." size 22 color "#cc3333"
-            text "Курсор полупрозрачный — клик временно недоступен." size 22 color "#aaaaaa"
-            text "Курсор мигнул и исчез — промазал, продолжай." size 22 color "#aaaaaa"
-            text "Красная подводка — попал, питание остановлено." size 22 color "#cc3333"
-            textbutton "Понятно" action Return() xalign 0.5 text_size 26
-
-screen feeding_minigame():
-    modal True
-
-    # Состояние хранится в screen-переменных
-    default cursor_pos = 0.0        # 0.0 = низ, 1.0 = верх
-    default moving_up = True
-    default blood = 1               # Начинаем с 1 точки
-    default in_timeout = False
-    default timeout_progress = 0.0  # 0.0–1.0, таймаут = 1/4 полного пути
-    default cursor_state = "normal" # normal / timeout / miss / hit
-    default hit_flash = 0.0         # таймер для вспышки hit/miss
-    default game_over = False
-    default game_started = False
-
-    # Размер зелёной зоны и позиция (фиксируем в центре)
-    default zone_size = calc_feeding_zone(feeding_difficulty)
-    default zone_pos = 0.5 - zone_size / 2.0   # верхний край зоны (доля)
-
-    # Таймер движения курсора (каждые 16мс = ~60fps)
-    if game_started and not game_over:
-        timer 0.016 repeat True action [
-            # Движение курсора
-            If(moving_up,
-                SetScreenVariable("cursor_pos",
-                    min(1.0, cursor_pos + feeding_speed)),
-                SetScreenVariable("cursor_pos",
-                    max(0.0, cursor_pos - feeding_speed))
-            ),
-            # Смена направления и счёт очков
-            If(moving_up and cursor_pos >= 1.0,
-                SetScreenVariable("moving_up", False)
-            ),
-            If(not moving_up and cursor_pos <= 0.0, [
-                SetScreenVariable("moving_up", True),
-                SetScreenVariable("blood", blood + 1),
-                If(blood + 1 >= 5, SetScreenVariable("game_over", True))
-            ]),
-            # Таймаут
-            If(in_timeout, [
-                SetScreenVariable("timeout_progress",
-                    min(1.0, timeout_progress + feeding_speed * 4)),
-                If(timeout_progress >= 1.0, [
-                    SetScreenVariable("in_timeout", False),
-                    SetScreenVariable("timeout_progress", 0.0),
-                    SetScreenVariable("cursor_state", "normal")
-                ])
-            ]),
-            # Сброс flash-состояния miss
-            If(cursor_state == "miss" and hit_flash > 0, [
-                SetScreenVariable("hit_flash", max(0.0, hit_flash - 0.016)),
-                If(hit_flash <= 0.0, SetScreenVariable("cursor_state", "normal"))
-            ])
-        ]
-
-    # Фон
-    add Solid("#111111")
-
-    hbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 40
-
-        # Шкала слева
-        frame:
-            xsize TRACK_W
-            ysize TRACK_H
-            background Solid("#333333")
-
-            # Красная зона
-            add Solid("#cc0000"):
-                xsize TRACK_W
-                ysize int(TRACK_H * zone_size)
-                xpos 0
-                ypos int(TRACK_H * (1.0 - zone_pos - zone_size))
-
-            # Курсор
-            if cursor_state == "normal":
-                add Solid("#ffffff"):
-                    xsize TRACK_W
-                    ysize CURSOR_H
-                    xpos 0
-                    ypos int(TRACK_H * (1.0 - cursor_pos) - CURSOR_H / 2)
-            elif cursor_state == "timeout":
-                add Solid("#ffffff88"):
-                    xsize TRACK_W
-                    ysize CURSOR_H
-                    xpos 0
-                    ypos int(TRACK_H * (1.0 - cursor_pos) - CURSOR_H / 2)
-            elif cursor_state == "miss":
-                pass
-            elif cursor_state == "hit":
-                add Solid("#ffffff"):
-                    xsize TRACK_W
-                    ysize CURSOR_H
-                    xpos 0
-                    ypos int(TRACK_H * (1.0 - cursor_pos) - CURSOR_H / 2)
-                add Solid("#cc0000"):
-                    xsize TRACK_W
-                    ysize 3
-                    xpos 0
-                    ypos int(TRACK_H * (1.0 - cursor_pos) - CURSOR_H / 2) - 3
-                add Solid("#cc0000"):
-                    xsize TRACK_W
-                    ysize 3
-                    xpos 0
-                    ypos int(TRACK_H * (1.0 - cursor_pos) + CURSOR_H / 2)
-
-        # Правая колонка: точки и кнопки
-        vbox:
-            yalign 0.5
-            spacing 30
-
-            # Счётчик точек символами •
-            vbox:
-                spacing 8
-                text "Кровь" size 22 color "#aaaaaa"
-                hbox:
-                    spacing 6
-                    for i in range(5):
-                        if i < blood:
-                            text "•" size 48 color "#cc0000"
-                        else:
-                            text "•" size 48 color "#444444"
-
-            # Кнопки
-            if not game_started:
-                textbutton "Начать" action SetScreenVariable("game_started", True) text_size 28
-            elif game_over:
-                textbutton "Готово" action [
-                    SetVariable("feeding_blood", blood),
-                    Return()
-                ] text_size 28
-            else:
-                textbutton "Стоп" text_size 28:
-                    action If(
-                        not in_timeout,
-                        If(
-                            cursor_pos >= zone_pos and cursor_pos <= zone_pos + zone_size,
-                            [
-                                SetScreenVariable("cursor_state", "hit"),
-                                SetScreenVariable("game_over", True),
-                                SetVariable("feeding_blood", blood)
-                            ],
-                            [
-                                SetScreenVariable("cursor_state", "miss"),
-                                SetScreenVariable("hit_flash", 0.4),
-                                SetScreenVariable("in_timeout", True),
-                                SetScreenVariable("timeout_progress", 0.0)
-                            ]
-                        ),
-                        NullAction()
-                    )
-
+# ── Сцена питания: Клэр ─────────────────────────────────────────────
+# Универсальный движок мини-игры — в minigame_feeding.rpy.
+# Статус жертвы (жива/без сознания/мертва) — в character_state.rpy.
+# Здесь только то, что специфично именно для этой сцены с Клэр.
 label feeding_claire:
     $ feeding_difficulty = 1 if ponyuhala_volosy else 2
     # Чем больше успехов при проверке питания — тем медленнее курсор
     # Базовая скорость 0.006, каждый успех снижает на 0.0008 (минимум 0.002)
     $ feeding_speed = max(0.002, 0.006 - dice_successes * 0.0008)
-    $ feeding_victim_dice = 4
-    $ feeding_blood = 0
 
-    menu:
-        "Пить":
-            pass
-        "Правила":
-            call screen feeding_rules
-            jump feeding_claire
-
-    call screen feeding_minigame
+    call feeding_start
 
     if feeding_blood <= 2:
-        $ feeding_result = "safe"
-    elif feeding_blood == 5:
-        $ feeding_result = "dead"
-    else:
-        # 3 или 4 точки — скрытый бросок жертвы
-        # Нужно собрать не меньше feeding_blood успехов из feeding_victim_dice кубиков
-        $ victim_survived = feeding_victim_check(feeding_blood, feeding_victim_dice)
-        if victim_survived:
-            $ feeding_result = "unconscious"
-        else:
-            $ feeding_result = "dead"
-
-    if feeding_result == "safe":
+        $ set_character_status("claire", STATUS_ALIVE)
         "Клэр обмякает в объятиях. Она жива — просто в полусознании и экстазе."
-    elif feeding_result == "unconscious":
-        "Клэр без сознания. Дышит. Повезло."
+    elif feeding_blood == 3:
+        jump claire_feed_light_overdose
+    elif feeding_blood == 4:
+        jump claire_feed_heavy_overdose
     else:
+        $ set_character_status("claire", STATUS_DEAD)
         "Клэр больше не дышит."
 
     return
 
+# 3 и 4 точки крови не завязаны на саму мини-игру, поэтому их исход
+# решается прямо тут. Пока сохранено прежнее поведение (скрытый бросок
+# жертвы), но теперь его легко заменить на фиксированный исход или
+# сюжетную развилку — независимо для 3 и для 4 точек.
+label claire_feed_light_overdose:
+    if hidden_check(4, feeding_blood):
+        $ set_character_status("claire", STATUS_UNCONSCIOUS)
+        "Клэр без сознания. Дышит. Повезло."
+    else:
+        $ set_character_status("claire", STATUS_DEAD)
+        "Клэр больше не дышит."
+    return
 
-
-screen dice_result():
-    vbox:
-        xalign 0.5
-        yalign 0.4
-        spacing 10
-
-        hbox:
-            xalign 0.5
-            spacing 8
-            for roll in dice_rolls:
-                if roll >= 6:
-                    text "[roll]" size 40 color "#33cc33" outlines [(2, "#000000", 0, 0)]
-                else:
-                    text "[roll]" size 40 color "#000000" outlines [(2, "#888888", 0, 0)]
-
-        text "Успехов: [dice_successes] / Нужно: [dice_needed]" xalign 0.5 size 28 color "#ffffff"
-
-        if dice_successes >= dice_needed:
-            text "УСПЕХ" xalign 0.5 size 36 color "#33cc33"
-        else:
-            text "ПРОВАЛ" xalign 0.5 size 36 color "#cc3333"
-
-        textbutton "Далее" action Return() xalign 0.5
+label claire_feed_heavy_overdose:
+    if hidden_check(4, feeding_blood):
+        $ set_character_status("claire", STATUS_UNCONSCIOUS)
+        "Клэр без сознания. Дышит. Повезло."
+    else:
+        $ set_character_status("claire", STATUS_DEAD)
+        "Клэр больше не дышит."
+    return
 
 # Игра начинается здесь:
 label start:
