@@ -64,25 +64,73 @@ init python:
 
         Принимает те же аргументы, что и cs_dice_pool (specialization, bonus),
         и читает те же данные листа персонажа — так расшифровка всегда
-        соответствует реальному числу кубиков, которое пойдёт в бросок."""
+        соответствует реальному числу кубиков, которое пойдёт в бросок.
+
+        Дополнительно красит часть ромбиков красным — это кубики голода
+        (правило V5): их количество равно текущему голоду персонажа
+        (cs_hunger_filled, если не передан явный параметр hunger), но не
+        больше самого пула. Красятся они с конца всего пула — то есть
+        сначала "тратится" бонус за специализацию, потом последний навык
+        в списке, и так далее к началу."""
         specialization = kwargs.get("specialization", None)
         bonus = kwargs.get("bonus", 0)
+        hunger = kwargs.get("hunger", None)
+        if hunger is None:
+            hunger = cs_hunger_filled
         norm_spec = specialization.strip().lower() if specialization else None
 
-        parts = []
+        # Раскладываем пул на "кусочки" в том порядке, в котором они
+        # реально пойдут в бросок: атрибут/навык, отдельно кусочек
+        # специализации (если применилась), отдельно свободный бонус.
+        # piece_of — группировка кусочков для сборки текста (у одного
+        # навыка может быть два кусочка: основной + специализация).
+        piece_of = []
+        chunks = []
         for name in names:
             value, specs = cs_find_stat_entry(name)
-            piece = u"%s %s" % (name, cs_pips(value))
+            piece_index = len(piece_of)
+            piece_of.append({"label": name, "spec_label": None})
+            chunks.append({"piece": piece_index, "part": "main", "count": value})
             if norm_spec:
                 matched = next((s for s in specs if norm_spec == s.strip().lower()), None)
                 if matched:
-                    piece += u" (%s) %s" % (matched, cs_pips(1))
-            parts.append(piece)
-
-        text = u" + ".join(parts)
+                    piece_of[piece_index]["spec_label"] = matched
+                    chunks.append({"piece": piece_index, "part": "spec", "count": 1})
         if bonus:
-            text += u" %s %s" % ("+" if bonus > 0 else "-", cs_pips(abs(bonus)))
-        return text
+            piece_index = len(piece_of)
+            piece_of.append({"label": "+" if bonus > 0 else "-", "spec_label": None})
+            chunks.append({"piece": piece_index, "part": "main", "count": abs(bonus)})
+
+        total = sum(c["count"] for c in chunks)
+        hunger_count = max(0, min(hunger, total))
+
+        # Красим с конца: идём по кусочкам в обратном порядке и "тратим"
+        # оставшийся голод на каждый, пока не кончится.
+        remaining = hunger_count
+        for c in reversed(chunks):
+            red = min(c["count"], remaining)
+            c["red"] = red
+            c["black"] = c["count"] - red
+            remaining -= red
+
+        def render_pips(chunk):
+            pips = cs_pips(chunk["black"])
+            if chunk["red"]:
+                pips += u"{color=#cc3333}%s{/color}" % cs_pips(chunk["red"])
+            return pips
+
+        pieces_pips = {}
+        for c in chunks:
+            pieces_pips.setdefault(c["piece"], {})[c["part"]] = render_pips(c)
+
+        parts = []
+        for i, info in enumerate(piece_of):
+            text = u"%s %s" % (info["label"], pieces_pips[i]["main"])
+            if info["spec_label"]:
+                text += u" (%s) %s" % (info["spec_label"], pieces_pips[i]["spec"])
+            parts.append(text)
+
+        return u" + ".join(parts)
 
     def cs_dice_pool(*names, **kwargs):
         """Считает пул кубиков для проверки: сумма указанных атрибутов

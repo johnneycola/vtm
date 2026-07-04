@@ -639,7 +639,7 @@ label u_mashiny:
 
     menu:
         "Молча съесть её\n[[Проверка: [pool_silent_display]]":
-            $ roll_dice(pool_silent)
+            $ roll_dice(pool_silent, hunger=cs_hunger_filled)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump molcha_uspeh
@@ -647,7 +647,7 @@ label u_mashiny:
                 jump molcha_proval
 
         "Пошутить\n[[Проверка: [pool_joke_display]]" if slushal_pro_ostin:
-            $ roll_dice(pool_joke)
+            $ roll_dice(pool_joke, hunger=cs_hunger_filled)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump poshutit_uspeh
@@ -655,7 +655,7 @@ label u_mashiny:
                 jump poshutit_proval
 
         "Быть романтичным\n[[Проверка: [pool_romantic_display]]":
-            $ roll_dice(pool_romantic)
+            $ roll_dice(pool_romantic, hunger=cs_hunger_filled)
             call screen dice_result
             if dice_successes >= dice_needed:
                 jump romantika_uspeh
