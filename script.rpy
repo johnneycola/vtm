@@ -631,8 +631,14 @@ label u_mashiny:
     $ pool_joke     = cs_dice_pool("Харизма", "Убеждение", specialization="соблазнение")
     $ pool_romantic = cs_dice_pool("Самообладание", "Убеждение", specialization="соблазнение")
 
+    # Текстовая расшифровка тех же пулов для показа в меню — например,
+    # "Харизма ◆◆◆◆ + Убеждение ◆◆◆ (соблазнение) ◆".
+    $ pool_silent_display   = cs_dice_pool_display("Сила", "Скрытность")
+    $ pool_joke_display     = cs_dice_pool_display("Харизма", "Убеждение", specialization="соблазнение")
+    $ pool_romantic_display = cs_dice_pool_display("Самообладание", "Убеждение", specialization="соблазнение")
+
     menu:
-        "Молча съесть её\n[[Проверка: Сила + Скрытность, [pool_silent] куб.]":
+        "Молча съесть её\n[[Проверка: [pool_silent_display]]":
             $ roll_dice(pool_silent)
             call screen dice_result
             if dice_successes >= dice_needed:
@@ -640,7 +646,7 @@ label u_mashiny:
             else:
                 jump molcha_proval
 
-        "Пошутить\n[[Проверка: Харизма + Убеждение (соблазнение), [pool_joke] куб.]" if slushal_pro_ostin:
+        "Пошутить\n[[Проверка: [pool_joke_display]]" if slushal_pro_ostin:
             $ roll_dice(pool_joke)
             call screen dice_result
             if dice_successes >= dice_needed:
@@ -648,7 +654,7 @@ label u_mashiny:
             else:
                 jump poshutit_proval
 
-        "Быть романтичным\n[[Проверка: Самообладание + Убеждение (соблазнение), [pool_romantic] куб.]":
+        "Быть романтичным\n[[Проверка: [pool_romantic_display]]":
             $ roll_dice(pool_romantic)
             call screen dice_result
             if dice_successes >= dice_needed:

@@ -54,6 +54,36 @@ init python:
             return u"%s (%s)" % (name, u", ".join(specs))
         return name
 
+    def cs_pips(value):
+        """Ромбики для показа числового значения характеристики: ◆◆◆"""
+        return u"\u25C6" * max(value, 0)
+
+    def cs_dice_pool_display(*names, **kwargs):
+        """Строит текстовую расшифровку пула кубиков для показа в интерфейсе,
+        например: 'Харизма ◆◆◆◆ + Убеждение ◆◆◆ (соблазнение) ◆'
+
+        Принимает те же аргументы, что и cs_dice_pool (specialization, bonus),
+        и читает те же данные листа персонажа — так расшифровка всегда
+        соответствует реальному числу кубиков, которое пойдёт в бросок."""
+        specialization = kwargs.get("specialization", None)
+        bonus = kwargs.get("bonus", 0)
+        norm_spec = specialization.strip().lower() if specialization else None
+
+        parts = []
+        for name in names:
+            value, specs = cs_find_stat_entry(name)
+            piece = u"%s %s" % (name, cs_pips(value))
+            if norm_spec:
+                matched = next((s for s in specs if norm_spec == s.strip().lower()), None)
+                if matched:
+                    piece += u" (%s) %s" % (matched, cs_pips(1))
+            parts.append(piece)
+
+        text = u" + ".join(parts)
+        if bonus:
+            text += u" %s %s" % ("+" if bonus > 0 else "-", cs_pips(abs(bonus)))
+        return text
+
     def cs_dice_pool(*names, **kwargs):
         """Считает пул кубиков для проверки: сумма указанных атрибутов
         и/или навыков + бонус за специализацию (если указана и совпадает
