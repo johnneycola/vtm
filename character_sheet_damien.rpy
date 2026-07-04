@@ -54,24 +54,29 @@ init python:
             return u"%s (%s)" % (name, u", ".join(specs))
         return name
 
-    def cs_pips(value):
-        """Ромбики для показа числового значения характеристики: ◆◆◆"""
-        return u"\u25C6" * max(value, 0)
+    def cs_pips(value, hunger=False):
+        """Ромбики для показа числового значения характеристики в проверках.
+        Раньше рисовались текстовым символом ◆, теперь — картинками
+        dice/d-mini.webp (обычный) / dice/hd-mini.webp (голодный), вставленными
+        прямо в текст через тег {image=...}."""
+        image_path = "dice/hd-mini.webp" if hunger else "dice/d-mini.webp"
+        return (u"{image=%s}" % image_path) * max(value, 0)
 
     def cs_dice_pool_display(*names, **kwargs):
         """Строит текстовую расшифровку пула кубиков для показа в интерфейсе,
-        например: 'Харизма ◆◆◆◆ + Убеждение ◆◆◆ (соблазнение) ◆'
+        например: 'Харизма [4 чёрных ромбика] + Убеждение [1 чёрный + 2
+        красных ромбика] (соблазнение) [1 красный ромбик]'
 
         Принимает те же аргументы, что и cs_dice_pool (specialization, bonus),
         и читает те же данные листа персонажа — так расшифровка всегда
         соответствует реальному числу кубиков, которое пойдёт в бросок.
 
-        Дополнительно красит часть ромбиков красным — это кубики голода
-        (правило V5): их количество равно текущему голоду персонажа
-        (cs_hunger_filled, если не передан явный параметр hunger), но не
-        больше самого пула. Красятся они с конца всего пула — то есть
-        сначала "тратится" бонус за специализацию, потом последний навык
-        в списке, и так далее к началу."""
+        Часть ромбиков рисуется голодной картинкой (dice/hd-mini.webp) — это
+        кубики голода (правило V5): их количество равно текущему голоду
+        персонажа (cs_hunger_filled, если не передан явный параметр hunger),
+        но не больше самого пула. Голодными становятся с конца всего пула —
+        то есть сначала "тратится" бонус за специализацию, потом последний
+        навык в списке, и так далее к началу."""
         specialization = kwargs.get("specialization", None)
         bonus = kwargs.get("bonus", 0)
         hunger = kwargs.get("hunger", None)
@@ -104,8 +109,8 @@ init python:
         total = sum(c["count"] for c in chunks)
         hunger_count = max(0, min(hunger, total))
 
-        # Красим с конца: идём по кусочкам в обратном порядке и "тратим"
-        # оставшийся голод на каждый, пока не кончится.
+        # Помечаем голодными с конца: идём по кусочкам в обратном порядке
+        # и "тратим" оставшийся голод на каждый, пока не кончится.
         remaining = hunger_count
         for c in reversed(chunks):
             red = min(c["count"], remaining)
@@ -114,10 +119,7 @@ init python:
             remaining -= red
 
         def render_pips(chunk):
-            pips = cs_pips(chunk["black"])
-            if chunk["red"]:
-                pips += u"{color=#cc3333}%s{/color}" % cs_pips(chunk["red"])
-            return pips
+            return cs_pips(chunk["black"], hunger=False) + cs_pips(chunk["red"], hunger=True)
 
         pieces_pips = {}
         for c in chunks:

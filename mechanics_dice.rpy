@@ -24,11 +24,12 @@
 #  берётся весь пул (кубиков голода не может быть больше, чем
 #  кубиков в проверке вообще).
 #
-#  На экране результата голодные кубики подчёркнуты, а значения
-#  1 и 10 окрашиваются красным — но только если они выпали именно
-#  на голодном кубике (заготовка под "звериный провал"/"грязный
-#  критический успех" — сама логика этих правил здесь не считается,
-#  только визуальная подсветка).
+#  На экране результата каждая грань — картинка из game/dice/, но не по
+#  каждому конкретному значению, а по диапазону: d1–5.webp (провал),
+#  d6–9.webp (успех), d10.webp — для обычных кубиков; hd1.webp,
+#  hd2–5.webp, hd6–9.webp, hd10.webp — для голодных (1 и 10 выделены
+#  отдельно — это значения, особые для правил V5: звериный провал /
+#  грязный критический успех).
 # ============================================================
 
 init python:
@@ -55,6 +56,29 @@ init python:
         """Скрытая проверка: True, если набрано >= needed успехов из pool кубиков."""
         return hidden_check_successes(pool) >= needed
 
+    def dice_face_image(value, hunger):
+        """Путь к картинке кубика. Обычные кубики: провал 1-5, успех 6-9
+        и отдельно 10 (нужна для подсчёта пары десяток на критический
+        успех) — три картинки, без разбивки на точное число. Голодные
+        кубики: отдельно 1 (риск звериного провала) и отдельно 10 (риск
+        грязного критического успеха), 2-5 и 6-9 сгруппированы так же."""
+        if hunger:
+            if value == 1:
+                return u"dice/hd1.webp"
+            elif value == 10:
+                return u"dice/hd10.webp"
+            elif value <= 5:
+                return u"dice/hd2\u20135.webp"
+            else:
+                return u"dice/hd6\u20139.webp"
+        else:
+            if value == 10:
+                return u"dice/d10.webp"
+            elif value <= 5:
+                return u"dice/d1\u20135.webp"
+            else:
+                return u"dice/d6\u20139.webp"
+
 
 default dice_rolls = []
 default dice_successes = 0
@@ -76,26 +100,12 @@ screen dice_result():
                 # Голодные кубики — последние dice_hunger_count в пуле.
                 $ is_hunger = i >= (len(dice_rolls) - dice_hunger_count)
 
-                if is_hunger and roll in (1, 10):
-                    # Особая подсветка только на голодных 1 и 10.
-                    $ roll_color = "#ff3333"
-                    $ roll_outline = "#000000"
-                elif roll >= 6:
-                    $ roll_color = "#33cc33"
-                    $ roll_outline = "#000000"
-                else:
-                    $ roll_color = "#000000"
-                    $ roll_outline = "#888888"
-
-                if is_hunger:
-                    text "{u}[roll]{/u}" size 40 color roll_color outlines [(2, roll_outline, 0, 0)]
-                else:
-                    text "[roll]" size 40 color roll_color outlines [(2, roll_outline, 0, 0)]
+                add dice_face_image(roll, is_hunger)
 
         text "Успехов: [dice_successes] / Нужно: [dice_needed]" xalign 0.5 size 28 color "#ffffff"
 
         if dice_hunger_count > 0:
-            text "Голодных кубиков (подчёркнуты): [dice_hunger_count]" xalign 0.5 size 16 color "#cc6666"
+            text "Голодных кубиков: [dice_hunger_count]" xalign 0.5 size 16 color "#cc6666"
 
         if dice_successes >= dice_needed:
             text "УСПЕХ" xalign 0.5 size 36 color "#33cc33"
