@@ -24,7 +24,7 @@ label n1_r200_1:
     show damien front at damien_front_pos
     show claire back at claire_back_pos
     d "Я хорошо разбираюсь в людях."
-    "Ты нихера не разбираешься в людях."
+    think "Ты нихера не разбираешься в людях."
 # Дамьен — Клэр
     hide bg
     hide damien front
@@ -40,6 +40,8 @@ label n1_r200_1:
 # Клэр уходит    
     show claire front at claire_front_leave
     hide claire front
-    "Она взяла сигареты со стойки и ушла. Молодец."
+    "Она взяла сигареты со стойки и ушла."
+    think "Молодец."
+    "Я оборачиваюсь."
 
     return

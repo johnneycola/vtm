@@ -21,3 +21,4 @@ transform bg_pos(dist=50, time=0.6):
 # ------------------------------------------
 image bg bar_scene = "bg/bar_scene.webp"
 image bg bar_inside = "bg/bar_inside.webp"
+image bg bar_outside = "bg/bar_outside.webp"
