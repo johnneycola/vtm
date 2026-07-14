@@ -22,6 +22,11 @@ define CHAT_TEXT_MARGIN = 12
 ## и мы могли различить действие/описание и мысль персонажа.
 define think = Character(None)
 
+init -1 python:
+    # Звуки интерфейса — отдельный канал, чтобы не перебивать
+    # фон и уникальные звуки сцены.
+    renpy.music.register_channel("ui", mixer="sound", loop=False)
+
 init python:
 
     import os
@@ -248,7 +253,7 @@ screen say(who, what):
     ## Пробел — альтернативный способ продолжить, наравне с кликом
     ## по кнопке "Дальше" (клик в любое другое место по-прежнему
     ## не работает — см. config.keymap["dismiss"] = []).
-    key "K_SPACE" action Return(True)
+    key "K_SPACE" action [Play("ui", "audio/ui/next.ogg"), Return(True)]
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -281,7 +286,7 @@ screen say(who, what):
                         ypos 26
                         background None
                         hover_background "#ae533440"
-                        action Return(True)
+                        action [Play("ui", "audio/ui/next.ogg"), Return(True)]
 
                         text "Дальше":
                             font FONT_BODY
@@ -298,6 +303,8 @@ screen say(who, what):
 ################################################################################
 
 screen choice(items):
+
+    on "show" action Play("ui", "audio/ui/choice.ogg")
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -340,16 +347,15 @@ screen choice(items):
                                 spacing 10
 
                                 for idx, i in enumerate(items):
-                                    ## Клавиша с цифрой (1-9) выбирает соответствующий вариант.
                                     if idx < 9:
-                                        key "K_%d" % (idx + 1) action i.action
+                                        key "K_%d" % (idx + 1) action [Play("ui", "audio/ui/choice.ogg"), i.action]
 
                                     button:
                                         xsize CHAT_PANEL_WIDTH
                                         yminimum 50
                                         background None
                                         hover_background "#ae533440"
-                                        action i.action
+                                        action [Play("ui", "audio/ui/choice.ogg"), i.action]
 
                                         text "%d. %s" % (idx + 1, i.caption):
                                             font FONT_BODY
