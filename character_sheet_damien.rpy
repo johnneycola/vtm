@@ -89,7 +89,7 @@ default cs_auspex_powers = [
 default cs_health_damage    = 0   # сколько клеток здоровья повреждено
 default cs_willpower_damage = 0   # сколько клеток силы воли потрачено
 default cs_humanity         = 7   # из 10
-default cs_hunger           = 1   # из 5
+default cs_hunger           = 3   # из 5
 
 
 init python:
