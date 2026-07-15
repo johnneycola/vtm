@@ -26,6 +26,32 @@ init python:
         # применяются поверх цвета.
         return "{color=%s}(%s){/color}" % (DIFFICULTY_TEXT_COLOR, text)
 
+    def check_line(attr_name, attr_value, skill_name, skill_value):
+        # Вторая строка под вариантом ответа: "Атрибут + Навык: ●● + ●".
+        # attr_name/skill_name бери строго как в листе персонажа
+        # (character_sheet_damien.rpy), attr_value/skill_value —
+        # соответствующие cs_* переменные оттуда же.
+        # Серая, мельче основного текста (15 вместо 20), пипсы — картинкой
+        # dice/d-mini.webp, а не символом. Атрибут и навык показываются
+        # раздельными группами через " + ", а не суммой.
+        #
+        # Голодные кубики (cs_hunger) заменяют обычные в пуле — но не
+        # больше, чем всего кубиков в пуле. Забирают сначала из навыка,
+        # если навыка не хватает — переходят на атрибут.
+        pool = attr_value + skill_value
+        hunger_dice = min(cs_hunger, pool)
+        skill_hunger = min(hunger_dice, skill_value)
+        attr_hunger = hunger_dice - skill_hunger
+
+        def pips(total, hunger):
+            normal = total - hunger
+            return "{image=dice/d-mini.webp}" * normal + "{image=dice/hd-mini.webp}" * hunger
+
+        attr_pips = pips(attr_value, attr_hunger)
+        skill_pips = pips(skill_value, skill_hunger)
+
+        return "{size=15}{color=#a9a9a9}%s + %s: %s + %s{/color}{/size}" % (attr_name, skill_name, attr_pips, skill_pips)
+
 label start:
 
     play ambience "audio/ambience/outside.ogg"
@@ -183,18 +209,22 @@ label n1_r300:
     $ feeding_pips = "{image=dice/success-mini.webp}" * feeding_difficulty
     $ feeding_note = difficulty_note("сложность: " + feeding_pips)
 
+    $ check_1 = check_line("Сила", cs_strength, "Скрытность", cs_stealth)
+    $ check_2 = check_line("Харизма", cs_charisma, "Убеждение", cs_persuasion)
+    $ check_3 = check_line("Самообладание", cs_composure, "Убеждение", cs_persuasion)
+
     menu:
-        "Молча съесть её [feeding_note]":
+        "Молча съесть её [feeding_note]\n[check_1]":
             # ВРЕМЕННО: пока нет механики проверки (будет на шаге 3),
             # ведёт сразу на успешный исход, чтобы ветку можно было
             # тестировать. Заменить на реальную проверку Сила + Скрытность.
             jump n1_r300_1s
 
-        "Пошутить [feeding_note]" if heard_claire_full_story:
+        "Пошутить [feeding_note]\n[check_2]" if heard_claire_full_story:
             # ВРЕМЕННО: см. комментарий выше. Проверка — Харизма + Убеждение.
             jump n1_r300_2s
 
-        "Быть романтичным [feeding_note]":
+        "Быть романтичным [feeding_note]\n[check_3]":
             # ВРЕМЕННО: см. комментарий выше. Проверка — Самообладание + Убеждение.
             jump n1_r300_3s
 
