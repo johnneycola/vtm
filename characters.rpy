@@ -1,6 +1,6 @@
 define c = Character("Клэр", color="#e91e63")
 define d = Character("Дамьен", color="#3498db")
-define char_transition_pause = 0.5
+define char_transition_pause = 0.4
 
 # ==========================================
 # ПЕРСОНАЖИ: спрайты и позиции
@@ -18,7 +18,7 @@ transform at_point(x, y):
 # При show: спрайт стартует на (x - dist) и едет к (x, y).
 # При hide: спрайт едет от текущей позиции к (x + dist), затем скрывается.
 # dist и time — необязательные параметры, можно переопределить точечно.
-transform char_pos(x, y, dist=200, time=0.5):
+transform char_pos(x, y, dist=800, time=0.4):
     on show:
         xanchor 0.5 yanchor 0.5
         xpos x - dist
@@ -33,7 +33,7 @@ transform char_pos(x, y, dist=200, time=0.5):
 # это нужно, чтобы show...at этим transform'ом не вызвал лишний скачок,
 # если персонаж уже стоит в этой точке (см. использование ниже).
 # Анимация целиком в on hide: дальний сдвиг + плавное растворение.
-transform char_leave(x, y, dist=600, time=0.6):
+transform char_leave(x, y, dist=800, time=0.4):
     xanchor 0.5 yanchor 0.5
     xpos x
     ypos y

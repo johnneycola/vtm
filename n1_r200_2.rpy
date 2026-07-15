@@ -61,7 +61,7 @@ label n1_r201_2:
         "Отказаться.":
             jump n1_r202_1
 
-        "Понюхать. [difficulty_note('сложность питания: -{image=dice/success-mini.webp}')]":
+        "Понюхать. [difficulty_note('сложность питания: -1')]":
             jump n1_r202_2
 
 

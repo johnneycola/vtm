@@ -6,7 +6,7 @@
 # Картинка должна быть шире экрана минимум на 2*dist
 # (у нас 2020 при экране 1920 — запас ровно 100,
 # то есть по 50px на сторону, впритык под dist=50).
-transform bg_pos(dist=50, time=0.6):
+transform bg_pos(dist=50, time=0.4):
     on show:
         xanchor 0.5 yanchor 0.0
         xpos 960 - dist

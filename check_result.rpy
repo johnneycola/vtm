@@ -44,11 +44,57 @@ init python:
         # Разбиваем список кубиков на строки по 5 штук для переноса.
         return [dice[i:i + per_row] for i in range(0, len(dice), per_row)]
 
+    def roll_check(attr_value, skill_value, difficulty):
+        # Реальный бросок: пул = атрибут + навык, голодные кубики забирают
+        # часть пула (та же логика, что в check_line — сначала из навыка,
+        # остаток из атрибута, но не больше cs_hunger и не больше пула).
+        pool = attr_value + skill_value
+        hunger_dice = min(cs_hunger, pool)
+        skill_hunger = min(hunger_dice, skill_value)
+        attr_hunger = hunger_dice - skill_hunger
+        normal_dice = pool - hunger_dice
 
-screen check_result(check_name, difficulty, dice, successes, result_text):
+        dice = []
+        for _ in range(normal_dice):
+            dice.append((renpy.random.randint(1, 10), False))
+        for _ in range(hunger_dice):
+            dice.append((renpy.random.randint(1, 10), True))
 
-    ## Тот же способ продолжить, что и в say/choice.
-    key "K_SPACE" action [Play("ui", "audio/ui/next.ogg"), Return(True)]
+        # Подсчёт успехов:
+        # - 1-5: 0 успехов
+        # - 6-9: 1 успех
+        # - 10: 1 успех, но если десяток несколько — они считаются парами,
+        #   и каждая пара даёт 4 успеха вместо 2 (прорыв). Непарный
+        #   "лишний" десяток идёт как обычный 1 успех.
+        #   (2 десятки = 4, 3 десятки = 4+1 = 5, 4 десятки = 4+4 = 8.)
+        tens = sum(1 for value, hunger in dice if value == 10)
+        pairs = tens // 2
+        leftover_ten = tens % 2
+        successes_6_9 = sum(1 for value, hunger in dice if 6 <= value <= 9)
+        successes = successes_6_9 + pairs * 4 + leftover_ten
+
+        # ВРЕМЕННО: три исхода без учёта голодных кубиков — Кровавый
+        # провал/триумф добавим отдельно позже.
+        if successes >= difficulty:
+            success = True
+            result_text = "УСПЕХ"
+        elif successes == 0:
+            success = False
+            result_text = "ЖЕСТОКИЙ ПРОВАЛ"
+        else:
+            success = False
+            result_text = "ПРОВАЛ"
+
+        return dice, successes, success, result_text
+
+
+screen check_result(check_name, difficulty, dice, successes, result_text, success):
+
+    $ continue_sound = "audio/ui/success.ogg" if success else "audio/ui/fail.ogg"
+
+    ## Тот же способ продолжить, что и в say/choice — но звук зависит
+    ## от исхода проверки, а не стандартный next.ogg.
+    key "K_SPACE" action [Play("ui", continue_sound), Return(True)]
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -134,7 +180,7 @@ screen check_result(check_name, difficulty, dice, successes, result_text):
                         ypos 26
                         background None
                         hover_background "#ae533440"
-                        action [Play("ui", "audio/ui/next.ogg"), Return(True)]
+                        action [Play("ui", continue_sound), Return(True)]
 
                         text "Дальше":
                             font FONT_BODY
@@ -158,6 +204,7 @@ label check_result_demo:
         [(7, False), (8, False), (9, True), (6, True), (2, True), (7, False), (3, False)],
         2,
         "УСПЕХ",
+        True,
     )
 
     return

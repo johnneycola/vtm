@@ -4,6 +4,11 @@
 
 default chat_history = []
 
+# Звук клика по варианту ответа. Обычно "audio/ui/choice.ogg" — но можно
+# временно переопределить перед конкретным "menu:" (например, на dice.ogg
+# для вариантов с проверкой), сбросив обратно сразу внутри самого варианта.
+default current_choice_sound = "audio/ui/choice.ogg"
+
 define FONT_NARRATION = "fonts/TTNormsProSerif-Normal.otf"
 define FONT_THOUGHT = "fonts/TTNormsProSerif-NormalItalic.otf"
 define FONT_BODY = "fonts/TTNormsProSerif-Normal.otf"
@@ -348,14 +353,14 @@ screen choice(items):
 
                                 for idx, i in enumerate(items):
                                     if idx < 9:
-                                        key "K_%d" % (idx + 1) action [Play("ui", "audio/ui/choice.ogg"), i.action]
+                                        key "K_%d" % (idx + 1) action [Play("ui", current_choice_sound), i.action]
 
                                     button:
                                         xsize CHAT_PANEL_WIDTH
                                         yminimum 50
                                         background None
                                         hover_background "#ae533440"
-                                        action [Play("ui", "audio/ui/choice.ogg"), i.action]
+                                        action [Play("ui", current_choice_sound), i.action]
 
                                         text "%d. %s" % (idx + 1, i.caption):
                                             font FONT_BODY

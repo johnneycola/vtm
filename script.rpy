@@ -55,13 +55,13 @@ init python:
 label start:
 
     play ambience "audio/ambience/outside.ogg"
-    show bg bar_outside at bg_pos
+    show bg bar_outside
     "Северная Калифорния."
     "Ирика — небольшой город возле границы с Орегоном."
     "Бар Jolley's Club Saloon."
     "9:30 PM."
     hide bg
-    play ambience "audio/ambience/bar.ogg" fadeout 1.0 fadein 1.0
+    play ambience "audio/ambience/bar.ogg"
     show bg bar_scene at bg_pos
     show damien front at damien_front_pos
     show claire back at claire_back_pos
@@ -206,27 +206,41 @@ label n1_r200_join:
 # ------------------------------------------
 label n1_r300:
 
-    $ feeding_pips = "{image=dice/success-mini.webp}" * feeding_difficulty
-    $ feeding_note = difficulty_note("сложность: " + feeding_pips)
+    $ feeding_note = difficulty_note("сложность: %d" % feeding_difficulty)
 
     $ check_1 = check_line("Сила", cs_strength, "Скрытность", cs_stealth)
     $ check_2 = check_line("Харизма", cs_charisma, "Убеждение", cs_persuasion)
     $ check_3 = check_line("Самообладание", cs_composure, "Убеждение", cs_persuasion)
 
+    $ current_choice_sound = "audio/ui/dice.ogg"
+
     menu:
         "Молча съесть её [feeding_note]\n[check_1]":
-            # ВРЕМЕННО: пока нет механики проверки (будет на шаге 3),
-            # ведёт сразу на успешный исход, чтобы ветку можно было
-            # тестировать. Заменить на реальную проверку Сила + Скрытность.
-            jump n1_r300_1s
+            $ current_choice_sound = "audio/ui/choice.ogg"
+            $ dice, successes, success, result_text = roll_check(cs_strength, cs_stealth, feeding_difficulty)
+            call screen check_result("Сила + Скрытность", feeding_difficulty, dice, successes, result_text, success)
+            if success:
+                jump n1_r300_1s
+            else:
+                jump n1_r300_1f
 
         "Пошутить [feeding_note]\n[check_2]" if heard_claire_full_story:
-            # ВРЕМЕННО: см. комментарий выше. Проверка — Харизма + Убеждение.
-            jump n1_r300_2s
+            $ current_choice_sound = "audio/ui/choice.ogg"
+            $ dice, successes, success, result_text = roll_check(cs_charisma, cs_persuasion, feeding_difficulty)
+            call screen check_result("Харизма + Убеждение", feeding_difficulty, dice, successes, result_text, success)
+            if success:
+                jump n1_r300_2s
+            else:
+                jump n1_r300_2f
 
         "Быть романтичным [feeding_note]\n[check_3]":
-            # ВРЕМЕННО: см. комментарий выше. Проверка — Самообладание + Убеждение.
-            jump n1_r300_3s
+            $ current_choice_sound = "audio/ui/choice.ogg"
+            $ dice, successes, success, result_text = roll_check(cs_composure, cs_persuasion, feeding_difficulty)
+            call screen check_result("Самообладание + Убеждение", feeding_difficulty, dice, successes, result_text, success)
+            if success:
+                jump n1_r300_3s
+            else:
+                jump n1_r300_3f
 
 
 # ------------------------------------------
