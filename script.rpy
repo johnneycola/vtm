@@ -114,6 +114,7 @@ label n1_r200_join:
     show claire front at claire_front_pos
     show damien back at damien_back_pos
 
+    play ambience "audio/ambience/outside.ogg"
     c "Слушай... спасибо, что выслушал. Мне надо было выговориться."
 # Клэр — Дамьен
     hide claire front
@@ -139,7 +140,10 @@ label n1_r200_join:
 # Дамьен уходит    
     show damien back at damien_back_leave
     hide damien back
-    "Клэр пикает сигналкой, оборачивается, чтобы проверить, что я всё ещё иду за ней и... открывает пассажирскую дверь."
+    play sfx "audio/sfx/carkey.ogg"
+    "Клэр пикает сигналкой, оборачивается, чтобы проверить, что я всё ещё иду за ней и..."
+    play sfx "audio/sfx/open_door.ogg"
+    "Открывает пассажирскую дверь."
     "Она с ногами забирается на заднее сиденье."
     c "Так и будешь там стоять?"
 

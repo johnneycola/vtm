@@ -11,8 +11,10 @@ label n1_r200_3:
     hide bg
     hide damien front
     hide claire back
+    play sfx "audio/sfx/doorbell.ogg"
     pause char_transition_pause
     show bg bar_outside at bg_pos
+    play ambience "audio/ambience/outside.ogg"
     "Клэр что-то щебечет всё это время, но я лишь время от времени угукаю... хах... подавая признаки жизни."
     "Мы выходим на парковку перед баром. Я облокачиваюсь одной рукой рядом с ней и внимательно смотрю, будто изучая её лицо."
     "Но меня не интересуют её морщины в уголках глаз и нервная улыбка, которую она натягивает после каждой фразы."

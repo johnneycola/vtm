@@ -138,6 +138,7 @@ label n1_r202_join:
 # Дамьен уходит    
     show damien back at damien_back_leave
     hide damien back
+    play sfx "audio/sfx/doorbell.ogg"
     pause char_transition_pause
 
     jump n1_r200_join

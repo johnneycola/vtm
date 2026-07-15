@@ -304,7 +304,7 @@ screen say(who, what):
 
 screen choice(items):
 
-    on "show" action Play("ui", "audio/ui/choice.ogg")
+    on "show" action Play("ui", "audio/ui/choice_appear.ogg")
 
     frame:
         xsize CHAT_PANEL_WIDTH
