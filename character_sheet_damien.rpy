@@ -89,6 +89,7 @@ default cs_auspex_powers = [
 default cs_health_damage    = 0   # сколько клеток здоровья повреждено
 default cs_willpower_damage = 0   # сколько клеток силы воли потрачено
 default cs_humanity         = 7   # из 10
+default cs_doubts           = 1   # из (10 - cs_humanity) — заполняются с конца трека
 default cs_hunger           = 3   # из 5
 
 
@@ -127,6 +128,40 @@ init python:
             parts.append(cs_dots(chunk_value, chunk, filled_color, empty_color))
             remaining_value -= chunk_value
             remaining_max -= chunk
+        return u" ".join(parts)
+
+    def cs_humanity_dots(humanity, doubts, maximum=10, group=5,
+                          filled_color="#ae5334", empty_color="#ffffff", doubt_color="#ffffff"):
+        """Трек Человечности с третьим состоянием — Сомнения: ● закрашено,
+        ○ пусто, ◐ сомнение. Порядок вдоль всего трека: сначала закрашенные,
+        потом пустые, и только в самом конце — сомнения (то есть сомнения
+        "съедают" пустые клетки с конца трека, не трогая закрашенные)."""
+        humanity = max(0, min(humanity, maximum))
+        doubts = max(0, min(doubts, maximum - humanity))
+        empty_count = maximum - humanity - doubts
+
+        cells = ([(u"\u25CF", filled_color)] * humanity +
+                 [(u"\u25CB", empty_color)] * empty_count +
+                 [(u"\u25D0", doubt_color)] * doubts)
+
+        parts = []
+        for i in range(0, maximum, group):
+            chunk = cells[i:i + group]
+            chunk_str = u""
+            run_char = u""
+            run_color = None
+            for ch, color in chunk:
+                if color == run_color:
+                    run_char += ch
+                else:
+                    if run_color is not None:
+                        chunk_str += u"{color=%s}%s{/color}" % (run_color, run_char)
+                    run_color = color
+                    run_char = ch
+            if run_color is not None:
+                chunk_str += u"{color=%s}%s{/color}" % (run_color, run_char)
+            parts.append(chunk_str)
+
         return u" ".join(parts)
 
     def cs_specs_line(skill_key):
@@ -558,7 +593,7 @@ screen cs_row_12_stats_a():
             vbox:
                 xoffset CS_COL_GUTTER
                 text "Человечность" font FONT_BODY size 15 color "#ffffff"
-                text cs_dots_grouped(cs_humanity, 10) font "DejaVuSans.ttf" size 15
+                text cs_humanity_dots(cs_humanity, cs_doubts) font "DejaVuSans.ttf" size 15
 
         vbox:
             xsize CS_COL_WIDTH

@@ -25,7 +25,7 @@ label n1_r100_2:
     show bg bar_scene at bg_pos
     show damien front at damien_front_pos
     show claire back at claire_back_pos
-    d "Ну не в мотеле же напротив оставаться."
+    d "Ну не в мотеле напротив же оставаться."
     "Она с интересом приподняла одну бровь."
 
     jump n1_r100_join

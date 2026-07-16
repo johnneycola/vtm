@@ -11,4 +11,7 @@ label n1_r300_3s:
     "Я немного наклоняюсь к ней, она тоже подаётся вперёд и в тот момент, как она закрывает глаза для поцелуя, я целюсь чуть ниже."
     "С лёгким хрустом я прокусываю её шею. Клэр обмякает и рот наполняет горячая кровь."
 
+    $ excess_successes = successes - feeding_difficulty
+    call screen feeding_minigame(feeding_difficulty, excess_successes)
+
     jump n1_r300_s_join
