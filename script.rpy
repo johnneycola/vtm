@@ -79,6 +79,7 @@ label start:
     show claire front at claire_front_pos
     show damien back at damien_back_pos
     c "Я Клэр."
+    $ c.name = "Клэр"
     "Она протягивает руку."
 # Клэр — Дамьен
     hide bg
