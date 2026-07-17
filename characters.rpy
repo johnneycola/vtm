@@ -1,6 +1,8 @@
 default claire_name = "Незнакомка"
-define c = Character("[claire_name]", color="#e91e63")
-define d = Character("Дамьен", color="#3498db")
+define c = Character("[claire_name]")
+define d = Character("Дамьен")
+define mitch = Character("Митч")
+define cliff = Character("Клифф")
 define char_transition_pause = 0.4
 
 # ==========================================
@@ -79,3 +81,19 @@ transform claire_back_pos:
     char_pos(294, 1746, dist=600)
 transform claire_back_leave:
     char_leave(294, 1746, dist=1800)
+
+
+# ------------------------------------------
+# Митч
+# ------------------------------------------
+# Позиции (char_pos/char_leave) пока не заведены — добавлю, когда
+# пришлёшь текст сцены и станет понятно, где по кадру они стоят.
+image mitch front = "ch/mitch-front.webp"
+image mitch back = "ch/mitch-back.webp"
+
+
+# ------------------------------------------
+# Клифф
+# ------------------------------------------
+image cliff front = "ch/cliff-front.webp"
+image cliff back = "ch/cliff-back.webp"
