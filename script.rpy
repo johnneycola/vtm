@@ -295,7 +295,7 @@ label n1_r300_join:
         pause char_transition_pause
         show bg bar_scene at bg_pos
 
-    play ambience "audio/ambience/bar.ogg" fadeout 1.0 fadein 1.0
+    play ambience "audio/ambience/bar.ogg"
 
     "Сцена на которой нам придётся выступать, конечно, мда…"
     "Платформа дюймов 10 высотой, пара комбиков, журавлей и стульев. Хорошо, хоть, ударка есть."
