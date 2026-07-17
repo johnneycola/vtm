@@ -113,6 +113,22 @@ init python:
         def cursor_center(self):
             return self.pos + self.CURSOR_WIDTH / 2.0
 
+        def blood_progress(self):
+            # 0..1, плавно растёт по ходу игры: 0 в самом начале, 1.0 —
+            # когда набрано 5 точек (после TOTAL_LAPS завершённых
+            # проходов). Внутри каждого прохода растёт непрерывно вместе
+            # с движением курсора, а не скачком по завершении прохода.
+            if self.travel_range <= 0:
+                frac_in_lap = 0.0
+            else:
+                p = self.pos / float(self.travel_range)
+                if self.direction == 1:
+                    frac_in_lap = p * 0.5
+                else:
+                    frac_in_lap = 0.5 + (1.0 - p) * 0.5
+            total = (self.laps + frac_in_lap) / float(self.TOTAL_LAPS)
+            return max(0.0, min(total, 1.0))
+
         def attempt_stop(self):
             now = renpy.time.time()
             if not self.running or self.cursor_hidden(now):
@@ -136,6 +152,18 @@ screen feeding_minigame(difficulty, excess_successes):
     ## поставит галочку прямо сейчас, инструкция всё равно достоит здесь
     ## до конца, спрячется только при следующем вызове мини-игры.
     default show_intro = not feeding_minigame_intro_dismissed
+
+    ## Трек питания — запускается один раз при появлении экрана, играет
+    ## поверх фоновых звуков/эмбиента (свой канал "music", как обычно).
+    on "show" action Play("music", "audio/music/feed.ogg")
+
+    ## Полноэкранный слой поверх bar_outside_feed (который уже показан
+    ## сценарием на master-слое) — плавно проявляется по ходу игры.
+    ## Сама bar_outside_feed трогать не нужно, эта картинка просто
+    ## наплывает на неё поверх, пока идёт мини-игра.
+    ## xanchor/xpos — та же итоговая позиция, что даёт bg_pos (картинка
+    ## 2020px по центру экрана 1920px), просто без анимации въезда.
+    add "bg/bar_outside_feed_blood.webp" alpha state.blood_progress() xanchor 0.5 xpos 960
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -254,7 +282,15 @@ screen feeding_minigame(difficulty, excess_successes):
                         ## Закончили (успешно остановили или дошли до 5 точек) — на выход.
                         $ continue_sound = "audio/ui/success.ogg" if state.success else "audio/ui/fail.ogg"
 
-                        key "K_SPACE" action [Play("ui", continue_sound), Return(state.laps + 1)]
+                        ## Трек продолжает играть в луп, только если дошли
+                        ## до принудительных 5 точек. Если игрок сам
+                        ## остановился раньше — трек глушим.
+                        $ continue_actions = [Play("ui", continue_sound)]
+                        if state.laps + 1 < 5:
+                            $ continue_actions.append(Stop("music", fadeout=1.0))
+                        $ continue_actions.append(Return(state.laps + 1))
+
+                        key "K_SPACE" action continue_actions
 
                         button:
                             xsize CHAT_PANEL_WIDTH
@@ -262,7 +298,7 @@ screen feeding_minigame(difficulty, excess_successes):
                             ypos 26
                             background None
                             hover_background "#ae533440"
-                            action [Play("ui", continue_sound), Return(state.laps + 1)]
+                            action continue_actions
 
                             text "Дальше":
                                 font FONT_BODY

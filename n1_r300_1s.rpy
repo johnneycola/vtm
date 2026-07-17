@@ -4,6 +4,8 @@
 
 label n1_r300_1s:
 
+    show bg bar_outside_feed
+
     "Я молча запрыгиваю следом и нависаю над ней. В её глазах проскакивает игривый блеск, но она, кажется, не готова к такому резкому развитию событий."
     c "Подожди..."
     think "Я не собираюсь ждать, дорогая."
@@ -17,5 +19,10 @@ label n1_r300_1s:
     $ cs_hunger = 0 if earned >= 5 else max(cs_hunger - earned, 1)
     if earned >= 5 and cs_humanity + cs_doubts < 10:
         $ cs_doubts += 1
+
+    if earned >= 5:
+        show bg bar_outside_feed_blood
+    else:
+        show bg bar_outside_feed
 
     jump n1_r300_s_join

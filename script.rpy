@@ -191,10 +191,16 @@ label n1_r200_join:
     show damien back at damien_back_leave
     hide damien back
     play sfx "audio/sfx/carkey.ogg"
+    pause 1.0
+    show bg bar_outside_alarm
+    pause 0.5
+    show bg bar_outside
     "Клэр пикает сигналкой, оборачивается, чтобы проверить, что я всё ещё иду за ней и..."
+    show bg bar_outside_door
     play sfx "audio/sfx/open_door.ogg"
     "Открывает пассажирскую дверь."
     "Она с ногами забирается на заднее сиденье."
+    show bg claire
     c "Так и будешь там стоять?"
 
     jump n1_r300
