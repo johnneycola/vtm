@@ -5,12 +5,20 @@
 ## Использовать так (в конце _s-веток, перед jump n1_r300_s_join):
 ##
 ##     $ excess_successes = successes - feeding_difficulty
+##     $ cs_hunger = 3
 ##     call screen feeding_minigame(feeding_difficulty, excess_successes)
+##     $ earned = _return
+##     $ cs_hunger = 0 if earned >= 5 else max(cs_hunger - earned, 1)
 ##
 ## difficulty        — сложность питания (feeding_difficulty на момент вызова).
 ## excess_successes  — успехи сверх сложности (может быть 0, не бывает
 ##                      отрицательным по смыслу, но на всякий случай
 ##                      подстраховано внутри).
+##
+## call screen возвращает earned — сколько точек игрок набрал по факту
+## (1..5, столько же, сколько показывает счётчик под полоской на
+## момент завершения) — используется, чтобы посчитать, насколько
+## понизился Голод (см. пример выше).
 ##
 ## Ничего не кэширует между вызовами — каждый call создаёт свежий объект
 ## состояния из переданных аргументов, так что если по сюжету мини-игра
@@ -146,7 +154,7 @@ screen feeding_minigame(difficulty, excess_successes):
                 background None
 
                 vbox:
-                    xalign 0.5
+                    xoffset 30
                     yalign 0.5
                     spacing 4
 
@@ -155,17 +163,14 @@ screen feeding_minigame(difficulty, excess_successes):
                             font FONT_HEADING
                             size 20
                             color "#ffffff"
-                            xalign 0.5
 
-                        text "По шкале вправо и влево движется курсор. Его скорость зависит от количества успехов в проверке питания.\n\nВыделенная область — момент когда можно остановиться. Её размер зависит от сложности проверки питания.\n\nНажми в нужный момент чтобы прекратить питание. При промахе курсор исчезает и пока будет не виден — клик недоступен.\n\nТы начинаешь с {font=DejaVuSans.ttf}●{/font}. Каждый полный проход влево-вправо добавляет {font=DejaVuSans.ttf}●{/font} и немного ускоряет курсор. На {font=DejaVuSans.ttf}●●●●●{/font} мини-игра завершится — жертва умирает, а Дамьен получает {font=DejaVuSans.ttf}●{/font} на Человечности и ему нужно будет избавиться от тела, пропуская важные события.\n\nСколько {font=DejaVuSans.ttf}●{/font} ты выпьешь, столько голода утолишь, но не меньше {font=DejaVuSans.ttf}●○○○○{/font}. Утолить голод целиком можно только выпив {font=DejaVuSans.ttf}●●●●●{/font}.":
+                        text "По шкале вправо и влево движется курсор. Его скорость зависит от количества успехов в проверке питания.\n\nВыделенная область — момент когда можно остановиться. Её размер зависит от сложности проверки питания.\n\nНажми в нужный момент чтобы прекратить питание. При промахе курсор исчезает и пока будет не виден — клик недоступен.\n\nТы начинаешь с {font=DejaVuSans.ttf}{color=#e5322e}●{/color}{/font}. Каждый полный проход влево-вправо добавляет {font=DejaVuSans.ttf}{color=#e5322e}●{/color}{/font} и немного ускоряет курсор. На {font=DejaVuSans.ttf}{color=#e5322e}●●●●●{/color}{/font} мини-игра завершится — жертва умирает, а Дамьен получает Сомнение — {font=DejaVuSans.ttf}{color=#ffffff}◐{/color}{/font} на шкале Человечности и ему нужно будет избавиться от тела, пропуская важные события.\n\nСколько {font=DejaVuSans.ttf}{color=#e5322e}●{/color}{/font} ты выпьешь, столько голода утолишь, но не меньше {font=DejaVuSans.ttf}{color=#ae5334}●{/color}{color=#ffffff}○○○○{/color}{/font}. Утолить голод целиком можно только выпив {font=DejaVuSans.ttf}{color=#e5322e}●●●●●{/color}{/font}.":
                             font FONT_BODY
                             size 16
                             color "#a9a9a9"
                             xsize CHAT_PANEL_WIDTH - 60
-                            xalign 0.5
 
-                        textbutton ("{font=DejaVuSans.ttf}☑{/font} Понятно" if feeding_minigame_intro_dismissed else "{font=DejaVuSans.ttf}☐{/font} Понятно"):
-                            xalign 0.5
+                        textbutton ("{font=DejaVuSans.ttf}■{/font} Понятно" if feeding_minigame_intro_dismissed else "{font=DejaVuSans.ttf}□{/font} Понятно"):
                             text_font FONT_BODY
                             text_size 16
                             text_color "#a9a9a9"
@@ -180,8 +185,8 @@ screen feeding_minigame(difficulty, excess_successes):
                         ysize FeedingMinigameState.BAR_HEIGHT
                         xalign 0.5
 
-                        add Solid("#ae533480", xsize=state.BAR_WIDTH, ysize=state.BAR_HEIGHT)
-                        add Solid("#ae5334bf", xsize=int(state.zone_width), ysize=state.BAR_HEIGHT) xalign 0.5
+                        add Solid("#e5322e80", xsize=state.BAR_WIDTH, ysize=state.BAR_HEIGHT)
+                        add Solid("#e5322ebf", xsize=int(state.zone_width), ysize=state.BAR_HEIGHT) xalign 0.5
 
                         if state.running and not state.cursor_hidden(renpy.time.time()):
                             # Белый, не #ae5334 как в исходном ТЗ — на том же
@@ -193,7 +198,7 @@ screen feeding_minigame(difficulty, excess_successes):
                     text ("●" * (state.laps + 1)) + ("○" * (FeedingMinigameState.TOTAL_LAPS - state.laps)):
                         font "DejaVuSans.ttf"
                         size 20
-                        color "#ae5334"
+                        color "#e5322e"
                         xalign 0.5
 
             frame:
@@ -249,7 +254,7 @@ screen feeding_minigame(difficulty, excess_successes):
                         ## Закончили (успешно остановили или дошли до 5 точек) — на выход.
                         $ continue_sound = "audio/ui/success.ogg" if state.success else "audio/ui/fail.ogg"
 
-                        key "K_SPACE" action [Play("ui", continue_sound), Return(True)]
+                        key "K_SPACE" action [Play("ui", continue_sound), Return(state.laps + 1)]
 
                         button:
                             xsize CHAT_PANEL_WIDTH
@@ -257,7 +262,7 @@ screen feeding_minigame(difficulty, excess_successes):
                             ypos 26
                             background None
                             hover_background "#ae533440"
-                            action [Play("ui", continue_sound), Return(True)]
+                            action [Play("ui", continue_sound), Return(state.laps + 1)]
 
                             text "Дальше":
                                 font FONT_BODY

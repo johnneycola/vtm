@@ -12,6 +12,11 @@ label n1_r300_3s:
     "С лёгким хрустом я прокусываю её шею. Клэр обмякает и рот наполняет горячая кровь."
 
     $ excess_successes = successes - feeding_difficulty
+    $ cs_hunger = 3
     call screen feeding_minigame(feeding_difficulty, excess_successes)
+    $ earned = _return
+    $ cs_hunger = 0 if earned >= 5 else max(cs_hunger - earned, 1)
+    if earned >= 5 and cs_humanity + cs_doubts < 10:
+        $ cs_doubts += 1
 
     jump n1_r300_s_join

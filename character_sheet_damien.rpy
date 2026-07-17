@@ -206,6 +206,31 @@ screen cs_stat_line(label, value, maximum=5):
             text cs_dots(value, maximum) font "DejaVuSans.ttf" size 15 xalign 1.0
 
 
+################################################################################
+## Кнопка вызова листа персонажа — всегда на экране (оверлей), поверх
+## диалогов, вариантов ответа, мини-игры и т.п. Сам лист (modal True,
+## zorder 300) при открытии перекрывает её — второй раз нажать нельзя,
+## пока не закрыт крестиком, это ожидаемо.
+################################################################################
+
+screen cs_open_button():
+
+    button:
+        xpos 50
+        ypos 10
+        background None
+        hover_background "#ae533440"
+        action Show("character_sheet_damien")
+
+        add "ui/ch-sh.webp"
+
+
+## Гарантирует, что кнопка показана в игре всегда, как и quick_menu в
+## screens.rpy (тот же приём: config.overlay_screens).
+init python:
+    config.overlay_screens.append("cs_open_button")
+
+
 screen character_sheet_damien():
 
     modal True
