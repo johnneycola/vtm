@@ -166,17 +166,21 @@ label n1_r200_join:
 
     play ambience "audio/ambience/outside.ogg"
     c "Слушай... спасибо, что выслушал. Мне надо было выговориться."
-# Клэр — Дамьен
+# Клэр — Дамьен    
+    hide bg
     hide claire front
     hide damien back
     pause char_transition_pause
+    show bg motel at bg_pos
     show damien front at damien_front_pos
     show claire back at claire_back_pos
     d "Не за что."
 # Дамьен — Клэр
+    hide bg
     hide damien front
     hide claire back
     pause char_transition_pause
+    show bg bar_outside at bg_pos
     show claire front at claire_front_pos
     show damien back at damien_back_pos
     c "Я хотела кое-что взять в машине."
