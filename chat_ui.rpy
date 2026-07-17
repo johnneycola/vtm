@@ -76,7 +76,12 @@ init python:
             name = d.name
         else:
             side = "npc"
-            name = speaker.name if hasattr(speaker, "name") else speaker
+            raw_name = speaker.name if hasattr(speaker, "name") else speaker
+            # Имя персонажа может быть шаблоном с подстановкой (см. c = "[claire_name]"
+            # в characters.rpy) — резолвим его именно сейчас, в момент реплики,
+            # а не откладываем на потом: иначе в chat_history попадёт буквальный
+            # текст "[claire_name]" вместо текущего значения переменной.
+            name = renpy.substitute(raw_name) if isinstance(raw_name, str) else raw_name
 
         chat_history.append({
             "speaker": name,

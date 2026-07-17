@@ -1,4 +1,5 @@
-define c = Character("Незнакомка", color="#e91e63")
+default claire_name = "Незнакомка"
+define c = Character("[claire_name]", color="#e91e63")
 define d = Character("Дамьен", color="#3498db")
 define char_transition_pause = 0.4
 

@@ -79,7 +79,7 @@ label start:
     show claire front at claire_front_pos
     show damien back at damien_back_pos
     c "Я Клэр."
-    $ c.name = "Клэр"
+    $ claire_name = "Клэр"
     "Она протягивает руку."
 # Клэр — Дамьен
     hide bg
@@ -170,6 +170,7 @@ label n1_r200_join:
     hide claire front
     hide damien back
     pause char_transition_pause
+    show bg motel at bg_pos
     show damien front at damien_front_pos
     show claire back at claire_back_pos
     d "Не за что."
@@ -177,6 +178,7 @@ label n1_r200_join:
     hide damien front
     hide claire back
     pause char_transition_pause
+    show bg bar_outside at bg_pos
     show claire front at claire_front_pos
     show damien back at damien_back_pos
     c "Я хотела кое-что взять в машине."
