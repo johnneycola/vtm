@@ -309,11 +309,11 @@ label n1_r300_join:
 
     play ambience "audio/ambience/bar.ogg"
 
-    show damien back at damien_back_pos
+    show damien back at damien_back_pos zorder 2
     "Сцена на которой нам придётся выступать, конечно, мда…"
     "Платформа дюймов 10 высотой, пара комбиков, журавлей и стульев. Хорошо, хоть, ударка есть."
 
-    show mitch front at mitch_front_pos
+    show mitch front at mitch_front_pos zorder 1
     "Митч уже там и развешивает посуду."
 
     mitch "Damn!"
@@ -340,10 +340,6 @@ label n1_r300_join:
         d "Не парься, всё в порядке. Сидит у себя в тачке и хнычет."
         mitch "То есть она может и послушать нас придёт?"
         d "Не думаю, мужик."
-        hide bg
-        hide damien front
-        hide mitch back
-        pause char_transition_pause
     else:
         mitch "Ты тоже уже поел?"
 # Митч — Дамьен
@@ -360,21 +356,29 @@ label n1_r300_join:
         mitch "То есть она ещё и послушать нас придёт?"
         d "Ну, мои, в отличие от твоих, потом могут ходить."
         "Мы глупо улыбаемся друг другу."
-        hide bg
-        hide damien front
-        hide mitch back
-        pause char_transition_pause
+
 
     # Приходит бас-гитарист
-    show bg bar_scene at bg_pos
-    show damien front at damien_front_pos
-    show mitch front at mitch_front_pos
-    show cliff back at cliff_back_pos
     "Внезапно появляется Клифф."
+    hide bg
+    hide damien front
+    hide mitch back
+    pause char_transition_pause
+    show bg bar_scene at bg_pos
+    show damien front at damien_front_pos_right
+    show mitch front at mitch_front_pos_left
+    show cliff back at cliff_back_pos_left
     cliff "Чо вы тут, жахались в дёсна пока меня не было?"
     d "Отсоси."
     "Клифф суетно закидывает Рикенбакер на себя, садится на карточки, чтобы лучше видеть тюнер и быстро проводит пальцами по струнам."
     mitch "Да, ладно, не настраивайся, тебя всё равно не слышно."
+    hide damien front
+    hide mitch front
+    hide cliff back
+    pause char_transition_pause
+    show cliff front at cliff_front_pos_right
+    show damien back at damien_back_pos_left
+    show mitch back at mitch_back_pos_right
     cliff "Как же ты заебал…"
     "Все смеются. Митч, кажется, только за этот вечер повторил эту шутку раз пятый и мы уже ржём как будто не над ней вовсе."
 
