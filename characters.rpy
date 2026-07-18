@@ -86,14 +86,30 @@ transform claire_back_leave:
 # ------------------------------------------
 # Митч
 # ------------------------------------------
-# Позиции (char_pos/char_leave) пока не заведены — добавлю, когда
-# пришлёшь текст сцены и станет понятно, где по кадру они стоят.
 image mitch front = "ch/mitch-front.webp"
+transform mitch_front_pos:
+    char_pos(960, 1020, dist=200)
+transform mitch_front_leave:
+    char_leave(960, 1020, dist=600)
+
 image mitch back = "ch/mitch-back.webp"
+transform mitch_back_pos:
+    char_pos(305, 1864, dist=600)
+transform mitch_back_leave:
+    char_leave(305, 1864, dist=1800)
 
 
 # ------------------------------------------
 # Клифф
 # ------------------------------------------
 image cliff front = "ch/cliff-front.webp"
+transform cliff_front_pos:
+    char_pos(930, 1005, dist=200)
+transform cliff_front_leave:
+    char_leave(930, 1005, dist=600)
+
 image cliff back = "ch/cliff-back.webp"
+transform cliff_back_pos:
+    char_pos(305, 1864, dist=600)
+transform cliff_back_leave:
+    char_leave(305, 1864, dist=1800)

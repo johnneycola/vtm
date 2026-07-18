@@ -12,4 +12,5 @@ label n1_r300_claire_survived:
     "Никого. Ни людей, ни камер. Я аккуратно закрыл дверь машины и пошёл обратно в бар."
 
     play sfx "audio/sfx/doorbell.ogg"
+    $ feeding_outcome = "success"
     jump n1_r300_join

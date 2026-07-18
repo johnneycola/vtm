@@ -44,4 +44,5 @@ label n1_r200_1:
     think "Молодец."
     "Я оборачиваюсь."
 
+    $ feeding_outcome = "skipped"
     jump n1_r300_join

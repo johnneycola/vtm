@@ -12,6 +12,13 @@ default heard_claire_full_story = False
 # в n1_r202_2 (см. n1_r200_2.rpy).
 default feeding_difficulty = 2
 
+# Как дошли до сцены с Митчем/Клиффом (n1_r300_join) — влияет на то,
+# какой блок диалога про еду там показывать:
+#   "skipped" — n1_r200_1, Клэр ушла до всякой проверки питания
+#   "failure" — n1_r300_f_join, проверка питания провалена
+#   "success" — n1_r300_claire_survived, поел успешно
+default feeding_outcome = None
+
 # Цвет текста в скобках у вариантов ответа, где показывается сложность/
 # эффект выбора (пипсы кубов и т.п.) — белый, чтобы выделяться на фоне
 # обычного оранжевого текста варианта. Меняешь тут — меняется везде.
@@ -166,7 +173,7 @@ label n1_r200_join:
 
     play ambience "audio/ambience/outside.ogg"
     c "Слушай... спасибо, что выслушал. Мне надо было выговориться."
-# Клэр — Дамьен    
+# Клэр — Дамьен
     hide bg
     hide claire front
     hide damien back
@@ -195,7 +202,7 @@ label n1_r200_join:
     show damien back at damien_back_leave
     hide damien back
     play sfx "audio/sfx/carkey.ogg"
-    pause 1.0
+    pause 0.5
     show bg bar_outside_alarm
     pause 0.5
     show bg bar_outside
@@ -271,6 +278,7 @@ label n1_r300_s_join:
 # ------------------------------------------
 label n1_r300_f_join:
 
+    $ feeding_outcome = "failure"
     play sfx "audio/sfx/doorbell.ogg"
     jump n1_r300_join
 
@@ -301,7 +309,73 @@ label n1_r300_join:
 
     play ambience "audio/ambience/bar.ogg"
 
+    show damien back at damien_back_pos
     "Сцена на которой нам придётся выступать, конечно, мда…"
     "Платформа дюймов 10 высотой, пара комбиков, журавлей и стульев. Хорошо, хоть, ударка есть."
+
+    show mitch front at mitch_front_pos
+    "Митч уже там и развешивает посуду."
+
+    mitch "Damn!"
+    d "Давно вернулся? Клифф где?"
+    mitch "Только сел. Пацан ща придёт."
+
+    "Я тянусь за своим Телекастером, подключаюсь к тюнеру и начинаю настраиваться."
+
+    if feeding_outcome == "skipped":
+        pass
+    elif feeding_outcome == "failure":
+        mitch "Ты тоже уже поел?"
+# Митч — Дамьен
+        hide bg
+        hide mitch front
+        hide damien back
+        pause char_transition_pause
+        show bg bar_inside at bg_pos
+        show damien front at damien_front_pos
+        show mitch back at mitch_back_pos
+        "Я качаю головой."
+        d "Прикинь, сама ко мне в руки шла и сорвалась в последний момент."
+        mitch "Всё нормально там? Не нужна какая-нибудь помощь?"
+        d "Не парься, всё в порядке. Сидит у себя в тачке и хнычет."
+        mitch "То есть она может и послушать нас придёт?"
+        d "Не думаю, мужик."
+        hide bg
+        hide damien front
+        hide mitch back
+        pause char_transition_pause
+    else:
+        mitch "Ты тоже уже поел?"
+# Митч — Дамьен
+        hide bg
+        hide mitch front
+        hide damien back
+        pause char_transition_pause
+        show bg bar_inside at bg_pos
+        show damien front at damien_front_pos
+        show mitch back at mitch_back_pos
+        d "Ага. Сама ко мне подошла."
+        mitch "Всё нормально там? Не нужна какая-нибудь помощь?"
+        d "Всё хорошо. Балдеет на заднем сиденье своей тачки."
+        mitch "То есть она ещё и послушать нас придёт?"
+        d "Ну, мои, в отличие от твоих, потом могут ходить."
+        "Мы глупо улыбаемся друг другу."
+        hide bg
+        hide damien front
+        hide mitch back
+        pause char_transition_pause
+
+    # Приходит бас-гитарист
+    show bg bar_scene at bg_pos
+    show damien front at damien_front_pos
+    show mitch front at mitch_front_pos
+    show cliff back at cliff_back_pos
+    "Внезапно появляется Клифф."
+    cliff "Чо вы тут, жахались в дёсна пока меня не было?"
+    d "Отсоси."
+    "Клифф суетно закидывает Рикенбакер на себя, садится на карточки, чтобы лучше видеть тюнер и быстро проводит пальцами по струнам."
+    mitch "Да, ладно, не настраивайся, тебя всё равно не слышно."
+    cliff "Как же ты заебал…"
+    "Все смеются. Митч, кажется, только за этот вечер повторил эту шутку раз пятый и мы уже ржём как будто не над ней вовсе."
 
     return
