@@ -151,7 +151,7 @@ label n1_r200:
         "Ты хорошая...":
             jump n1_r200_1
 
-        "Что у вас случилось?":
+        "Что у вас случилось? [difficulty_note('вариант питания: +1')]":
             jump n1_r200_2
 
         "Выйдем?":
@@ -164,7 +164,6 @@ label n1_r200_join:
 # Если уже bar_outside (пришли из уличной ветки) — просто оставляем как есть.
     if not renpy.showing("bg bar_outside"):
         hide bg
-        pause char_transition_pause
         show bg bar_outside at bg_pos
 
 # Персонажи после сцены на улице были спрятаны — показываем заново
