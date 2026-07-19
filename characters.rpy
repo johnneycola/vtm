@@ -3,6 +3,7 @@ define c = Character("[claire_name]")
 define d = Character("Дамьен")
 define mitch = Character("Митч")
 define cliff = Character("Клифф")
+define lance = Character("Лэнс")
 define char_transition_pause = 0.4
 
 # ==========================================
@@ -22,6 +23,10 @@ transform at_point(x, y):
 # При hide: спрайт едет от текущей позиции к (x + dist), затем скрывается.
 # dist и time — необязательные параметры, можно переопределить точечно.
 # mirror=True — отзеркалить спрайт по горизонтали (для "оборотных" ракурсов).
+#
+# zorder сюда не добавить — это не свойство трансформа/ATL, оно живёт
+# в списке сцены и назначается только через сам show (см. script.rpy:
+# "show ... zorder 0/1" — front/back).
 transform char_pos(x, y, dist=800, time=0.4, mirror=False):
     on show:
         xanchor 0.5 yanchor 0.5
@@ -59,52 +64,136 @@ transform char_shift(dx, time=0.4):
     ease time xoffset dx
 
 
+# ==========================================
+# ШАБЛОН РАСКЛАДКИ (см. Дамьена ниже для примера использования)
+#
+# ОДИН НА ОДИН       — x_front_pos / x_front_leave / x_back_pos / x_back_leave
+#                       (без суффикса, уже готово и не трогается —
+#                       у каждого персонажа своё X И Y, ничего общего)
+# ОДИН ПРОТИВ ДВОИХ   — x_front_pos_3 / x_back_pos_3 (+_leave)
+#                       (этот персонаж один, X универсален: 650 / 700)
+# ДВА ПРОТИВ ОДНОГО   — x_front_pos_3left/_3right, x_back_pos_3left/_3right (+_leave)
+#                       (этот персонаж в паре, X универсален:
+#                       фронт 300/1100, спина 100/1450)
+# ДВА НА ДВА          — x_front_pos_4left/_4right, x_back_pos_4left/_4right (+_leave)
+#                       (X универсален: фронт 400/900, спина 100/1450)
+#
+# Во всех случаях Y берётся из СОБСТВЕННЫХ x_front_pos/x_back_pos
+# персонажа (один на один) — по вертикали персонажи не меняются.
+# ==========================================
+
+
 # ------------------------------------------
 # Дамьен
 # ------------------------------------------
-# image damien front = "ch/damien-front.webp"
-# Такая запись (имя + attribute через пробел) — это
-# стандартная схема Ren'Py для "layered image":
-# позволяет потом просто писать "show damien front",
-# а если добавишь другие позы (damien-angry.webp и т.д.),
-# они автоматически подхватятся как атрибуты того же
-# персонажа: "show damien angry".
+
+# ------------------------------------------
+# ОДИН НА ОДИН
+
+# Один на один ЛИЦО
+# ------------------------------------------
 image damien front = "ch/damien-front.webp"
 transform damien_front_pos:
     char_pos(960, 1005, dist=200)
 transform damien_front_leave:
     char_leave(960, 1005, dist=600)
 
+# Один на один СПИНА
+# ------------------------------------------
 image damien back = "ch/damien-back.webp"
 transform damien_back_pos:
     char_pos(305, 1864, dist=600)
 transform damien_back_leave:
     char_leave(305, 1864, dist=1800)
 
-# Стили "2 персонажа и этот слева/справа" — отличаются только позицией
-# по горизонтали. Пока координаты те же, что и у обычных front/back —
-# подвинешь сам, когда будешь расставлять кадр под троих.
-transform damien_front_pos_left:
-    char_pos(150, 1005, dist=200)
-transform damien_front_pos_right:
+# ------------------------------------------
+# ОДИН ПРОТИВ ДВОИХ
+
+# Один против двоих ЛИЦО
+# ------------------------------------------
+transform damien_front_pos_3:
+    char_pos(650, 1005, dist=200)
+transform damien_front_leave_3:
+    char_leave(650, 1005, dist=600)
+
+# Один против двоих СПИНА
+# ------------------------------------------
+transform damien_back_pos_3:
+    char_pos(700, 1864, dist=600)
+transform damien_back_leave_3:
+    char_leave(700, 1864, dist=1800)
+
+# ------------------------------------------
+# ДВА ПРОТИВ ОДНОГО
+
+# Два против одного ЛИЦО
+# ------------------------------------------
+    #Слева
+transform damien_front_pos_3left:
+    char_pos(300, 1005, dist=200, mirror=True)
+transform damien_front_leave_3left:
+    char_leave(300, 1005, dist=600, mirror=True)
+
+    #Справа
+transform damien_front_pos_3right:
+    char_pos(1100, 1005, dist=200)
+transform damien_front_leave_3right:
+    char_leave(1100, 1005, dist=600)
+
+# Два против одного СПИНА
+# ------------------------------------------
+    #Слева
+transform damien_back_pos_3left:
+    char_pos(100, 1864, dist=600)
+transform damien_back_leave_3left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform damien_back_pos_3right:
+    char_pos(1300, 1864, dist=600, mirror=True)
+transform damien_back_leave_3right:
+    char_leave(1300, 1864, dist=1800, mirror=True)
+
+# ------------------------------------------
+# ДВА НА ДВА
+
+# Два на два ЛИЦО
+# ------------------------------------------
+    #Слева
+transform damien_front_pos_4left:
+    char_pos(400, 1005, dist=200, mirror=True)
+transform damien_front_leave_4left:
+    char_leave(400, 1005, dist=600, mirror=True)
+
+    #Справа
+transform damien_front_pos_4right:
     char_pos(900, 1005, dist=200)
-transform damien_front_leave_left:
-    char_leave(150, 1005, dist=600)
-transform damien_front_leave_right:
+transform damien_front_leave_4right:
     char_leave(900, 1005, dist=600)
 
-transform damien_back_pos_left:
-    char_pos(500, 1864, dist=600)
-transform damien_back_pos_right:
+# Два на два СПИНА
+# ------------------------------------------
+    #Слева
+transform damien_back_pos_4left:
+    char_pos(100, 1864, dist=600)
+transform damien_back_leave_4left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform damien_back_pos_4right:
     char_pos(1450, 1864, dist=600, mirror=True)
-transform damien_back_leave_left:
-    char_leave(500, 1864, dist=1800)
-transform damien_back_leave_right:
+transform damien_back_leave_4right:
     char_leave(1450, 1864, dist=1800, mirror=True)
 
 
 # ------------------------------------------
 # Клэр
+# ------------------------------------------
+
+# ------------------------------------------
+# ОДИН НА ОДИН
+
+# Один на один ЛИЦО
 # ------------------------------------------
 image claire front = "ch/claire-front.webp"
 transform claire_front_pos:
@@ -112,34 +201,102 @@ transform claire_front_pos:
 transform claire_front_leave:
     char_leave(934, 1092, dist=600)
 
+# Один на один СПИНА
+# ------------------------------------------
 image claire back = "ch/claire-back.webp"
 transform claire_back_pos:
     char_pos(294, 1746, dist=600)
 transform claire_back_leave:
     char_leave(294, 1746, dist=1800)
 
-# Стили "2 персонажа и этот слева/справа" — см. комментарий у Дамьена.
-transform claire_front_pos_left:
-    char_pos(150, 1092, dist=200)
-transform claire_front_pos_right:
+# ------------------------------------------
+# ОДИН ПРОТИВ ДВОИХ
+
+# Один против двоих ЛИЦО
+# ------------------------------------------
+transform claire_front_pos_3:
+    char_pos(650, 1092, dist=200)
+transform claire_front_leave_3:
+    char_leave(650, 1092, dist=600)
+
+# Один против двоих СПИНА
+# ------------------------------------------
+transform claire_back_pos_3:
+    char_pos(700, 1746, dist=600)
+transform claire_back_leave_3:
+    char_leave(700, 1746, dist=1800)
+
+# ------------------------------------------
+# ДВА ПРОТИВ ОДНОГО
+
+# Два против одного ЛИЦО
+# ------------------------------------------
+    #Слева
+transform claire_front_pos_3left:
+    char_pos(300, 1092, dist=200, mirror=True)
+transform claire_front_leave_3left:
+    char_leave(300, 1092, dist=600, mirror=True)
+
+    #Справа
+transform claire_front_pos_3right:
+    char_pos(1100, 1092, dist=200)
+transform claire_front_leave_3right:
+    char_leave(1100, 1092, dist=600)
+
+# Два против одного СПИНА
+# ------------------------------------------
+    #Слева
+transform claire_back_pos_3left:
+    char_pos(100, 1746, dist=600)
+transform claire_back_leave_3left:
+    char_leave(100, 1746, dist=1800)
+
+    #Справа
+transform claire_back_pos_3right:
+    char_pos(1450, 1746, dist=600, mirror=True)
+transform claire_back_leave_3right:
+    char_leave(1450, 1746, dist=1800, mirror=True)
+
+# ------------------------------------------
+# ДВА НА ДВА
+
+# Два на два ЛИЦО
+# ------------------------------------------
+    #Слева
+transform claire_front_pos_4left:
+    char_pos(400, 1092, dist=200, mirror=True)
+transform claire_front_leave_4left:
+    char_leave(400, 1092, dist=600, mirror=True)
+
+    #Справа
+transform claire_front_pos_4right:
     char_pos(900, 1092, dist=200)
-transform claire_front_leave_left:
-    char_leave(150, 1092, dist=600)
-transform claire_front_leave_right:
+transform claire_front_leave_4right:
     char_leave(900, 1092, dist=600)
 
-transform claire_back_pos_left:
-    char_pos(500, 1746, dist=600)
-transform claire_back_pos_right:
+# Два на два СПИНА
+# ------------------------------------------
+    #Слева
+transform claire_back_pos_4left:
+    char_pos(100, 1746, dist=600)
+transform claire_back_leave_4left:
+    char_leave(100, 1746, dist=1800)
+
+    #Справа
+transform claire_back_pos_4right:
     char_pos(1450, 1746, dist=600, mirror=True)
-transform claire_back_leave_left:
-    char_leave(500, 1746, dist=1800)
-transform claire_back_leave_right:
+transform claire_back_leave_4right:
     char_leave(1450, 1746, dist=1800, mirror=True)
 
 
 # ------------------------------------------
 # Митч
+# ------------------------------------------
+
+# ------------------------------------------
+# ОДИН НА ОДИН
+
+# Один на один ЛИЦО
 # ------------------------------------------
 image mitch front = "ch/mitch-front.webp"
 transform mitch_front_pos:
@@ -147,34 +304,102 @@ transform mitch_front_pos:
 transform mitch_front_leave:
     char_leave(960, 1020, dist=600)
 
+# Один на один СПИНА
+# ------------------------------------------
 image mitch back = "ch/mitch-back.webp"
 transform mitch_back_pos:
     char_pos(305, 1864, dist=600)
 transform mitch_back_leave:
     char_leave(305, 1864, dist=1800)
 
-# Стили "2 персонажа и этот слева/справа" — см. комментарий у Дамьена.
-transform mitch_front_pos_left:
-    char_pos(150, 1020, dist=200)
-transform mitch_front_pos_right:
+# ------------------------------------------
+# ОДИН ПРОТИВ ДВОИХ
+
+# Один против двоих ЛИЦО
+# ------------------------------------------
+transform mitch_front_pos_3:
+    char_pos(650, 1020, dist=200)
+transform mitch_front_leave_3:
+    char_leave(650, 1020, dist=600)
+
+# Один против двоих СПИНА
+# ------------------------------------------
+transform mitch_back_pos_3:
+    char_pos(700, 1864, dist=600)
+transform mitch_back_leave_3:
+    char_leave(700, 1864, dist=1800)
+
+# ------------------------------------------
+# ДВА ПРОТИВ ОДНОГО
+
+# Два против одного ЛИЦО
+# ------------------------------------------
+    #Слева
+transform mitch_front_pos_3left:
+    char_pos(300, 1020, dist=200, mirror=True)
+transform mitch_front_leave_3left:
+    char_leave(300, 1020, dist=600, mirror=True)
+
+    #Справа
+transform mitch_front_pos_3right:
+    char_pos(1100, 1020, dist=200)
+transform mitch_front_leave_3right:
+    char_leave(1100, 1020, dist=600)
+
+# Два против одного СПИНА
+# ------------------------------------------
+    #Слева
+transform mitch_back_pos_3left:
+    char_pos(100, 1864, dist=600)
+transform mitch_back_leave_3left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform mitch_back_pos_3right:
+    char_pos(1300, 1864, dist=600, mirror=True)
+transform mitch_back_leave_3right:
+    char_leave(1300, 1864, dist=1800, mirror=True)
+
+# ------------------------------------------
+# ДВА НА ДВА
+
+# Два на два ЛИЦО
+# ------------------------------------------
+    #Слева
+transform mitch_front_pos_4left:
+    char_pos(400, 1020, dist=200, mirror=True)
+transform mitch_front_leave_4left:
+    char_leave(400, 1020, dist=600, mirror=True)
+
+    #Справа
+transform mitch_front_pos_4right:
     char_pos(900, 1020, dist=200)
-transform mitch_front_leave_left:
-    char_leave(150, 1020, dist=600)
-transform mitch_front_leave_right:
+transform mitch_front_leave_4right:
     char_leave(900, 1020, dist=600)
 
-transform mitch_back_pos_left:
-    char_pos(500, 1864, dist=600)
-transform mitch_back_pos_right:
+# Два на два СПИНА
+# ------------------------------------------
+    #Слева
+transform mitch_back_pos_4left:
+    char_pos(100, 1864, dist=600)
+transform mitch_back_leave_4left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform mitch_back_pos_4right:
     char_pos(1450, 1864, dist=600, mirror=True)
-transform mitch_back_leave_left:
-    char_leave(500, 1864, dist=1800)
-transform mitch_back_leave_right:
+transform mitch_back_leave_4right:
     char_leave(1450, 1864, dist=1800, mirror=True)
 
 
 # ------------------------------------------
 # Клифф
+# ------------------------------------------
+
+# ------------------------------------------
+# ОДИН НА ОДИН
+
+# Один на один ЛИЦО
 # ------------------------------------------
 image cliff front = "ch/cliff-front.webp"
 transform cliff_front_pos:
@@ -182,27 +407,192 @@ transform cliff_front_pos:
 transform cliff_front_leave:
     char_leave(930, 1005, dist=600)
 
+# Один на один СПИНА
+# ------------------------------------------
 image cliff back = "ch/cliff-back.webp"
 transform cliff_back_pos:
     char_pos(305, 1864, dist=600)
 transform cliff_back_leave:
     char_leave(305, 1864, dist=1800)
 
-# Стили "2 персонажа и этот слева/справа" — см. комментарий у Дамьена.
-transform cliff_front_pos_left:
-    char_pos(150, 1005, dist=200)
-transform cliff_front_pos_right:
+# ------------------------------------------
+# ОДИН ПРОТИВ ДВОИХ
+
+# Один против двоих ЛИЦО
+# ------------------------------------------
+transform cliff_front_pos_3:
+    char_pos(650, 1005, dist=200)
+transform cliff_front_leave_3:
+    char_leave(650, 1005, dist=600)
+
+# Один против двоих СПИНА
+# ------------------------------------------
+transform cliff_back_pos_3:
+    char_pos(700, 1864, dist=600)
+transform cliff_back_leave_3:
+    char_leave(700, 1864, dist=1800)
+
+# ------------------------------------------
+# ДВА ПРОТИВ ОДНОГО
+
+# Два против одного ЛИЦО
+# ------------------------------------------
+    #Слева
+transform cliff_front_pos_3left:
+    char_pos(300, 1005, dist=200, mirror=True)
+transform cliff_front_leave_3left:
+    char_leave(300, 1005, dist=600, mirror=True)
+
+    #Справа
+transform cliff_front_pos_3right:
+    char_pos(1100, 1005, dist=200)
+transform cliff_front_leave_3right:
+    char_leave(1100, 1005, dist=600)
+
+# Два против одного СПИНА
+# ------------------------------------------
+    #Слева
+transform cliff_back_pos_3left:
+    char_pos(100, 1864, dist=600)
+transform cliff_back_leave_3left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform cliff_back_pos_3right:
+    char_pos(1450, 1864, dist=600, mirror=True)
+transform cliff_back_leave_3right:
+    char_leave(1450, 1864, dist=1800, mirror=True)
+
+# ------------------------------------------
+# ДВА НА ДВА
+
+# Два на два ЛИЦО
+# ------------------------------------------
+    #Слева
+transform cliff_front_pos_4left:
+    char_pos(400, 1005, dist=200, mirror=True)
+transform cliff_front_leave_4left:
+    char_leave(400, 1005, dist=600, mirror=True)
+
+    #Справа
+transform cliff_front_pos_4right:
     char_pos(900, 1005, dist=200)
-transform cliff_front_leave_left:
-    char_leave(150, 1005, dist=600)
-transform cliff_front_leave_right:
+transform cliff_front_leave_4right:
     char_leave(900, 1005, dist=600)
 
-transform cliff_back_pos_left:
-    char_pos(500, 1864, dist=600)
-transform cliff_back_pos_right:
+# Два на два СПИНА
+# ------------------------------------------
+    #Слева
+transform cliff_back_pos_4left:
+    char_pos(100, 1864, dist=600)
+transform cliff_back_leave_4left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform cliff_back_pos_4right:
     char_pos(1450, 1864, dist=600, mirror=True)
-transform cliff_back_leave_left:
-    char_leave(500, 1864, dist=1800)
-transform cliff_back_leave_right:
+transform cliff_back_leave_4right:
+    char_leave(1450, 1864, dist=1800, mirror=True)
+
+
+# ------------------------------------------
+# Лэнс
+# ------------------------------------------
+
+# ------------------------------------------
+# ОДИН НА ОДИН
+
+# Один на один ЛИЦО
+# ------------------------------------------
+image lance front = "ch/lance-front.webp"
+transform lance_front_pos:
+    char_pos(960, 1100, dist=200)
+transform lance_front_leave:
+    char_leave(960, 1100, dist=600)
+
+# Один на один СПИНА
+# ------------------------------------------
+image lance back = "ch/lance-back.webp"
+transform lance_back_pos:
+    char_pos(305, 1864, dist=600)
+transform lance_back_leave:
+    char_leave(305, 1864, dist=1800)
+
+# ------------------------------------------
+# ОДИН ПРОТИВ ДВОИХ
+
+# Один против двоих ЛИЦО
+# ------------------------------------------
+transform lance_front_pos_3:
+    char_pos(650, 1100, dist=200)
+transform lance_front_leave_3:
+    char_leave(650, 1100, dist=600)
+
+# Один против двоих СПИНА
+# ------------------------------------------
+transform lance_back_pos_3:
+    char_pos(700, 1864, dist=600)
+transform lance_back_leave_3:
+    char_leave(700, 1864, dist=1800)
+
+# ------------------------------------------
+# ДВА ПРОТИВ ОДНОГО
+
+# Два против одного ЛИЦО
+# ------------------------------------------
+    #Слева
+transform lance_front_pos_3left:
+    char_pos(300, 1100, dist=200, mirror=True)
+transform lance_front_leave_3left:
+    char_leave(300, 1100, dist=600, mirror=True)
+
+    #Справа
+transform lance_front_pos_3right:
+    char_pos(1100, 1100, dist=200)
+transform lance_front_leave_3right:
+    char_leave(1100, 1100, dist=600)
+
+# Два против одного СПИНА
+# ------------------------------------------
+    #Слева
+transform lance_back_pos_3left:
+    char_pos(100, 1864, dist=600)
+transform lance_back_leave_3left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform lance_back_pos_3right:
+    char_pos(1450, 1864, dist=600, mirror=True)
+transform lance_back_leave_3right:
+    char_leave(1450, 1864, dist=1800, mirror=True)
+
+# ------------------------------------------
+# ДВА НА ДВА
+
+# Два на два ЛИЦО
+# ------------------------------------------
+    #Слева
+transform lance_front_pos_4left:
+    char_pos(400, 1100, dist=200, mirror=True)
+transform lance_front_leave_4left:
+    char_leave(400, 1100, dist=600, mirror=True)
+
+    #Справа
+transform lance_front_pos_4right:
+    char_pos(900, 1100, dist=200)
+transform lance_front_leave_4right:
+    char_leave(900, 1100, dist=600)
+
+# Два на два СПИНА
+# ------------------------------------------
+    #Слева
+transform lance_back_pos_4left:
+    char_pos(100, 1864, dist=600)
+transform lance_back_leave_4left:
+    char_leave(100, 1864, dist=1800)
+
+    #Справа
+transform lance_back_pos_4right:
+    char_pos(1450, 1864, dist=600, mirror=True)
+transform lance_back_leave_4right:
     char_leave(1450, 1864, dist=1800, mirror=True)

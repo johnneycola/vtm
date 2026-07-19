@@ -19,6 +19,10 @@ default feeding_difficulty = 2
 #   "success" — n1_r300_claire_survived, поел успешно
 default feeding_outcome = None
 
+# Название группы — вводится игроком в n1_r300_join (сцена с Лэнсом),
+# дальше подтягивается по ходу игры через "[band_name]".
+default band_name = ""
+
 # Цвет текста в скобках у вариантов ответа, где показывается сложность/
 # эффект выбора (пипсы кубов и т.п.) — белый, чтобы выделяться на фоне
 # обычного оранжевого текста варианта. Меняешь тут — меняется везде.
@@ -70,8 +74,8 @@ label start:
     hide bg
     play ambience "audio/ambience/bar.ogg"
     show bg bar_scene at bg_pos
-    show damien front at damien_front_pos
-    show claire back at claire_back_pos
+    show damien front at damien_front_pos zorder 0
+    show claire back at claire_back_pos zorder 1
     c "Ты сегодня выступаешь?"
     d "А?"
     c "Говорю, привет, ты сегодня выступаешь?"
@@ -83,8 +87,8 @@ label start:
     hide claire back
     pause char_transition_pause
     show bg bar_inside at bg_pos
-    show claire front at claire_front_pos
-    show damien back at damien_back_pos
+    show claire front at claire_front_pos zorder 0
+    show damien back at damien_back_pos zorder 1
     c "Я Клэр."
     $ claire_name = "Клэр"
     "Она протягивает руку."
@@ -94,8 +98,8 @@ label start:
     hide damien back
     pause char_transition_pause
     show bg bar_scene at bg_pos
-    show damien front at damien_front_pos
-    show claire back at claire_back_pos
+    show damien front at damien_front_pos zorder 0
+    show claire back at claire_back_pos zorder 1
     d "Damn."
     c "M?"
     d "Я Дамьен, но вообще Damn."
@@ -151,7 +155,7 @@ label n1_r200:
         "Ты хорошая...":
             jump n1_r200_1
 
-        "Что у вас случилось? [difficulty_note('вариант питания: +1')]":
+        "Что у вас случилось?":
             jump n1_r200_2
 
         "Выйдем?":
@@ -164,11 +168,12 @@ label n1_r200_join:
 # Если уже bar_outside (пришли из уличной ветки) — просто оставляем как есть.
     if not renpy.showing("bg bar_outside"):
         hide bg
+        pause char_transition_pause
         show bg bar_outside at bg_pos
 
 # Персонажи после сцены на улице были спрятаны — показываем заново
-    show claire front at claire_front_pos
-    show damien back at damien_back_pos
+    show claire front at claire_front_pos zorder 0
+    show damien back at damien_back_pos zorder 1
 
     play ambience "audio/ambience/outside.ogg"
     c "Слушай... спасибо, что выслушал. Мне надо было выговориться."
@@ -178,8 +183,8 @@ label n1_r200_join:
     hide damien back
     pause char_transition_pause
     show bg motel at bg_pos
-    show damien front at damien_front_pos
-    show claire back at claire_back_pos
+    show damien front at damien_front_pos zorder 0
+    show claire back at claire_back_pos zorder 1
     d "Не за что."
 # Дамьен — Клэр
     hide bg
@@ -187,18 +192,18 @@ label n1_r200_join:
     hide claire back
     pause char_transition_pause
     show bg bar_outside at bg_pos
-    show claire front at claire_front_pos
-    show damien back at damien_back_pos
+    show claire front at claire_front_pos zorder 0
+    show damien back at damien_back_pos zorder 1
     c "Я хотела кое-что взять в машине."
     c "Не ожидала кого-нибудь встретить сегодня в баре."
     "Её голос звучит иначе. Тише. Ниже. Вкрадчивее."
 # Клэр уходит    
-    show claire front at claire_front_leave
+    show claire front at claire_front_leave zorder 0
     hide claire front
     "Она не спрашивает разрешения. Она уведомляет меня о том, что будет дальше."
     think "Дорогая, не ты ведёшь эту машину..."
 # Дамьен уходит    
-    show damien back at damien_back_leave
+    show damien back at damien_back_leave zorder 1
     hide damien back
     play sfx "audio/sfx/carkey.ogg"
     pause 0.5
@@ -308,11 +313,11 @@ label n1_r300_join:
 
     play ambience "audio/ambience/bar.ogg"
 
-    show damien back at damien_back_pos zorder 2
+    show damien back at damien_back_pos zorder 1
     "Сцена на которой нам придётся выступать, конечно, мда…"
     "Платформа дюймов 10 высотой, пара комбиков, журавлей и стульев. Хорошо, хоть, ударка есть."
 
-    show mitch front at mitch_front_pos zorder 1
+    show mitch front at mitch_front_pos zorder 0
     "Митч уже там и развешивает посуду."
 
     mitch "Damn!"
@@ -331,8 +336,8 @@ label n1_r300_join:
         hide damien back
         pause char_transition_pause
         show bg bar_inside at bg_pos
-        show damien front at damien_front_pos
-        show mitch back at mitch_back_pos
+        show damien front at damien_front_pos zorder 0
+        show mitch back at mitch_back_pos zorder 1
         "Я качаю головой."
         d "Прикинь, сама ко мне в руки шла и сорвалась в последний момент."
         mitch "Всё нормально там? Не нужна какая-нибудь помощь?"
@@ -347,8 +352,8 @@ label n1_r300_join:
         hide damien back
         pause char_transition_pause
         show bg bar_inside at bg_pos
-        show damien front at damien_front_pos
-        show mitch back at mitch_back_pos
+        show damien front at damien_front_pos zorder 0
+        show mitch back at mitch_back_pos zorder 1
         d "Ага. Сама ко мне подошла."
         mitch "Всё нормально там? Не нужна какая-нибудь помощь?"
         d "Всё хорошо. Балдеет на заднем сиденье своей тачки."
@@ -356,29 +361,106 @@ label n1_r300_join:
         d "Ну, мои, в отличие от твоих, потом могут ходить."
         "Мы глупо улыбаемся друг другу."
 
-
-    # Приходит бас-гитарист
-    "Внезапно появляется Клифф."
+# Приходит бас-гитарист
     hide bg
     hide damien front
     hide mitch back
     pause char_transition_pause
     show bg bar_scene at bg_pos
-    show damien front at damien_front_pos_right
-    show mitch front at mitch_front_pos_left
-    show cliff back at cliff_back_pos_left
+    show damien front at damien_front_pos_3left zorder 0
+    show mitch front at mitch_front_pos_3right zorder 0
+    show cliff back at cliff_back_pos_3 zorder 1
+    "Внезапно появляется Клифф."
     cliff "Чо вы тут, жахались в дёсна пока меня не было?"
     d "Отсоси."
     "Клифф суетно закидывает Рикенбакер на себя, садится на карточки, чтобы лучше видеть тюнер и быстро проводит пальцами по струнам."
     mitch "Да, ладно, не настраивайся, тебя всё равно не слышно."
+    hide bg
     hide damien front
     hide mitch front
     hide cliff back
     pause char_transition_pause
-    show cliff front at cliff_front_pos_right
-    show damien back at damien_back_pos_left
-    show mitch back at mitch_back_pos_right
+    show bg bar_scene at bg_pos
+    show cliff front at cliff_front_pos_3 zorder 0
+    show damien back at damien_back_pos_3right zorder 1
+    show mitch back at mitch_back_pos_3left zorder 1
     cliff "Как же ты заебал…"
     "Все смеются. Митч, кажется, только за этот вечер повторил эту шутку раз пятый и мы уже ржём как будто не над ней вовсе."
+
+    "Нас прерывает хозяин бара."
+
+# Хозяин бара (Лэнс) — Дамьен и Митч уходят из кадра, входит Лэнс
+    hide bg
+    hide damien front
+    hide mitch front
+    hide cliff back
+    pause char_transition_pause
+    show bg bar_inside at bg_pos
+    show damien back at damien_back_pos zorder 1
+    show lance front at lance_front_pos zorder 0
+    lance "У вас всё готово, парни?"
+    "Мы синхронно киваем."
+    lance "Сколько песен играете?"
+
+# Лэнс — Дамьен
+    hide bg
+    hide damien back
+    hide lance front
+    pause char_transition_pause
+    show bg bar_scene at bg_pos
+    show damien front at damien_front_pos zorder 0
+    show lance back at lance_back_pos zorder 1
+    d "Пять."
+    lance "Окей, тогда буду вас объявлять."
+
+# Лэнс у микрофона, обращается к залу
+    hide bg
+    hide damien front
+    hide lance back
+    pause char_transition_pause
+    show bg bar_inside at bg_pos
+    show lance back at lance_back_pos zorder 1
+    play sfx "audio/sfx/mic-check.ogg"
+    play ambience "audio/ambience/bar.ogg" fadein 5.0
+    "Лэнс берёт микрофон, пару раз стучит по нему."
+    lance "Доброй ночи всем, кто решил провести время в Jolley’s Club Saloon. У нас сегодня живая музыка, если вы не заметили. Ребята из кавер-группы…"
+    "Лэнс прикрывает микрофон ладонью и наклоняется к нам."
+
+# Лэнс наклонился к Дамьену — приватный вопрос (тот же фон, без смены)
+    hide bg
+    hide lance back
+    pause char_transition_pause
+    show bg bar_scene at bg_pos
+    show damien front at damien_front_pos zorder 0
+    show lance back at lance_back_pos zorder 1
+    lance "Блин, парни, забыл спросить, как вы называетесь?"
+    "По залу пробегают смешки."
+
+# Дамьен — Лэнс, ввод названия группы
+    $ band_name = renpy.input("Введите название группы и нажмите Enter", default="", length=30).strip()
+    if not band_name:
+        $ band_name = "Без названия"
+
+# Лэнс объявляет группу залу
+    hide bg
+    hide damien front
+    hide lance back
+    pause char_transition_pause
+    show bg bar_inside at bg_pos
+    show lance back at lance_back_pos zorder 1
+    "Лэнс убирает ладонь и продолжает говорить в микрофон."
+    lance "Группа [band_name]! Давайте, похлопайте им, я видел их сет-лист у парней там хит за хитом."
+
+# Дамьен и Митч встречают тишину зала (2 персонажа спиной, слева/справа)
+    hide lance back
+    pause char_transition_pause
+    think "У нас нет сет-листа."
+    show damien back at damien_back_pos zorder 1
+    "Нам никто особо не хлопает. Мужики за стойкой увлечены каким-то матчем по телеку."
+    play sfx "audio/sfx/feedback.ogg"
+    "Парочки за столиками воркуют друг с другом."
+    "По-моему, нам хлопали только люди из очереди в туалет."
+    "Два человека."
+    think "Ладно, держитесь!"
 
     return
