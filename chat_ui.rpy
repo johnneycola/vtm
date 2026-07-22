@@ -4,6 +4,11 @@
 
 default chat_history = []
 
+# Подпись кнопки "Дальше" в экране say — обычно стандартная, но можно
+# точечно подменить перед конкретной репликой (например, "Начать
+# ритм-игру") и вернуть обратно сразу после.
+default next_button_label = "Дальше"
+
 # Звук клика по варианту ответа. Обычно "audio/ui/choice.ogg" — но можно
 # временно переопределить перед конкретным "menu:" (например, на dice.ogg
 # для вариантов с проверкой), сбросив обратно сразу внутри самого варианта.
@@ -298,7 +303,7 @@ screen say(who, what):
                         hover_background "#ae533440"
                         action [Play("ui", "audio/ui/next.ogg"), Return(True)]
 
-                        text "Дальше":
+                        text next_button_label:
                             font FONT_BODY
                             color "#ae5334"
                             size 20

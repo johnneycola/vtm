@@ -5,6 +5,11 @@ init -1 python:
     renpy.music.register_channel("sfx", mixer="sound", loop=False)
     # Звуки интерфейса (клик "Дальше", выбор варианта)
     renpy.music.register_channel("ui", mixer="sound", loop=False)
+    # Ритм-игра: бас+барабаны — играет всегда без остановки.
+    renpy.music.register_channel("band", mixer="music", loop=False)
+    # Ритм-игра: гитара — мьютится на промахах, играет отдельным файлом
+    # синхронно с "band" (оба стартуют в один и тот же момент).
+    renpy.music.register_channel("guitar", mixer="music", loop=False)
 
 
 init python:
