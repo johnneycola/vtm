@@ -1,15 +1,12 @@
 ################################################################################
-## Ритм-игра (первый рабочий прототип) — падающие кружки по 4 дорожкам,
-## бьём по стрелкам в момент пересечения линии между зоной чата и зоной
-## ответов. При промахе — гитара глохнет, пока не попадёшь снова.
-##
-## Пока БЕЗ склейки с лупом/диалогами — это следующий шаг. Сейчас просто
-## сама механика на реальных таймингах, чтобы посмотреть, как ощущается.
+## Ритм-игра — падающие кружки по 4 дорожкам, бьём по стрелкам в момент
+## пересечения линии между зоной чата и зоной ответов. При промахе — гитара
+## глохнет, пока не попадёшь снова.
 ##
 ## Тайминги — JSON из gp5_to_rhythm.py: [{"time_ms": .., "lane": ..}, ...]
 ## lane — одна из "left"/"up"/"down"/"right".
 ##
-## Использование:
+## Прямое использование (без интро/отсчёта):
 ##     call screen rhythm_game("verse1.json", "audio/music/back-in-black-band-1.ogg",
 ##                              "audio/music/back-in-black-guitar-1.ogg")
 ################################################################################
@@ -24,6 +21,8 @@ init python:
         HIT_WINDOW_MS = 150   # окно попадания, ±мс от точного времени ноты
         FALL_TIME_MS = 1200   # сколько кружок падает сверху до линии
         NOTE_SIZE = 36
+        LANE_FLASH_SEC = 0.12   # подсветка стрелки при нажатии клавиши
+        NOTE_FLASH_SEC = 0.12   # подсветка ноты при попадании по ней
         FAIL_SOUNDS = [
             "audio/ui/fail-1.ogg",
             "audio/ui/fail-2.ogg",
@@ -47,13 +46,40 @@ init python:
             self.started = False
             self.finished = False
             self.hits = 0
+            self.score = 0
+            self.success = False
+
+            # Подсветка стрелки при нажатии клавиши — используем
+            # реальное время (renpy.time.time()), а не время песни:
+            # подсветка должна мигать одинаково что на виртуальном
+            # предпоказе, что во время самой игры.
+            self.lane_flash_until = dict((lane, 0.0) for lane in self.LANES)
+
+            # Подсветка попавших нот — список ещё не погасших вспышек,
+            # каждая {"lane":, "until":}. Сама нота к этому моменту уже
+            # judged=True и пропадает из visible_notes(), поэтому вспышка
+            # рисуется отдельно, всегда прямо на линии попадания.
+            self.note_flashes = []
+
+            # Пока None — song_pos_ms() берёт время из реальной позиции
+            # канала "band", как и раньше. Если сюда подставить число —
+            # song_pos_ms() будет отдавать ЕГО вместо реальной позиции.
+            # Это нужно, чтобы можно было отрисовывать и обсчитывать
+            # падающие ноты ДО того, как verse-трек реально начал
+            # играть (см. RhythmIntroState ниже) — тогда сюда кладётся
+            # "виртуальное" время относительно точно посчитанного
+            # момента старта verse, отрицательное, пока этот момент ещё
+            # не наступил, и совпадающее с реальным get_pos() сразу
+            # после — переход бесшовный.
+            self.external_now_ms = None
 
         def start(self):
-            # Если трек уже играет на канале (например, его подхватили из
-            # очереди сразу после лупа — см. queue_next_verse/wait_for_track
-            # в script.rpy) — НЕ перезапускаем его повторно через play(),
-            # это вызвало бы обрыв/рестарт трека. Просто начинаем считать
-            # с той позиции, где он уже находится.
+            # Если трек уже играет на канале (например, его подхватили
+            # заранее — либо через очередь, как в queue_next_verse, либо
+            # хардкатом из RhythmIntroState) — НЕ перезапускаем его
+            # повторно через play(), это вызвало бы обрыв/рестарт трека.
+            # Просто начинаем считать с той позиции, где он уже
+            # находится.
             self.started = True
             if renpy.music.get_playing(channel="band") != self.band_track:
                 renpy.music.play(self.band_track, channel="band")
@@ -61,6 +87,8 @@ init python:
                 renpy.music.play(self.guitar_track, channel="guitar")
 
         def song_pos_ms(self):
+            if self.external_now_ms is not None:
+                return self.external_now_ms
             pos = renpy.music.get_pos(channel="band")
             if pos is None:
                 return 0.0
@@ -81,7 +109,17 @@ init python:
                 renpy.music.set_volume(1.0, channel="guitar")
 
         def tick(self):
-            if not self.started or self.finished:
+            # Вызывается таймером — считаем пропущенные ноты. Работает,
+            # если игра "по-настоящему" началась (self.started), ИЛИ
+            # если сейчас идёт предпоказ на виртуальном времени (см.
+            # RhythmIntroState) — тогда тоже можно честно судить ноты,
+            # чей интервал попадания уже прошёл.
+            now_real = renpy.time.time()
+            self.note_flashes = [f for f in self.note_flashes if f["until"] > now_real]
+
+            if self.finished:
+                return
+            if not self.started and self.external_now_ms is None:
                 return
             now = self.song_pos_ms()
             any_pending = False
@@ -92,10 +130,17 @@ init python:
                         n["judged"] = True
                         n["hit"] = False
                         self.mute_guitar()
-            if not any_pending and renpy.music.get_playing(channel="band") is None:
+            if not any_pending and self.started and renpy.music.get_playing(channel="band") is None:
                 self.finished = True
+                total = len(self.notes)
+                self.success = total == 0 or self.score >= total * 0.75
 
         def attempt_hit(self, lane):
+            # Стрелка подсвечивается на любое нажатие клавиши — попал
+            # игрок по ноте или нет.
+            now_real = renpy.time.time()
+            self.lane_flash_until[lane] = now_real + self.LANE_FLASH_SEC
+
             now = self.song_pos_ms()
             candidates = [
                 n for n in self.notes
@@ -103,15 +148,19 @@ init python:
                 and abs(n["time_ms"] - now) <= self.HIT_WINDOW_MS
             ]
             if not candidates:
-                # Мимо ноты — тоже промах: обрываем гитару и играем
-                # тот же случайный fail-звук, что и на пропущенной ноте.
+                # Мимо ноты — тоже промах: обрываем гитару, играем
+                # тот же случайный fail-звук, что и на пропущенной ноте,
+                # и списываем очко со счётчика.
                 self.mute_guitar()
+                self.score -= 1
                 return
             note = min(candidates, key=lambda n: abs(n["time_ms"] - now))
             note["judged"] = True
             note["hit"] = True
             self.hits += 1
+            self.score += 1
             self.unmute_guitar()
+            self.note_flashes.append({"lane": lane, "until": now_real + self.NOTE_FLASH_SEC})
 
         def lane_x(self, lane, track_width):
             idx = self.LANES.index(lane)
@@ -131,19 +180,92 @@ init python:
                     result.append((n["lane"], y))
             return result
 
+        def visible_flashes(self, hit_line_y):
+            # Вспышки попавших нот — всегда рисуются прямо на линии
+            # попадания (сама нота к этому моменту уже пропала из
+            # visible_notes(), см. note_flashes выше).
+            return [(f["lane"], hit_line_y) for f in self.note_flashes]
 
-screen rhythm_game(notes_path, band_track, guitar_track):
 
-    default state = RhythmGameState(notes_path, band_track, guitar_track)
+## Переиспользуемый визуал: дорожки + падающие ноты + стрелки внизу.
+## Используется и обычной игрой (rhythm_game), и предпоказом во время
+## последнего такта интро (rhythm_intro) — на одном и том же объекте
+## RhythmGameState, без пересоздания.
+screen rhythm_track_view(state):
 
-    on "show" action Function(state.start)
+    frame:
+        ysize int(config.screen_height * 0.75)
+        xfill True
+        background None
 
-    timer 0.02 repeat True action Function(state.tick)
+        fixed:
+            xfill True
+            yfill True
 
-    key "K_LEFT" action Function(state.attempt_hit, "left")
-    key "K_UP" action Function(state.attempt_hit, "up")
-    key "K_DOWN" action Function(state.attempt_hit, "down")
-    key "K_RIGHT" action Function(state.attempt_hit, "right")
+            ## Дорожки-направляющие (тонкие линии), просто для ориентира.
+            for lane in RhythmGameState.LANES:
+                add Solid("#ffffff20", xsize=2, ysize=int(config.screen_height * 0.75)):
+                    xpos (state.lane_x(lane, CHAT_PANEL_WIDTH) - 1)
+
+            ## Сами падающие кружки.
+            for lane, y in state.visible_notes(int(config.screen_height * 0.75)):
+                add Solid("#e5322e", xsize=RhythmGameState.NOTE_SIZE, ysize=RhythmGameState.NOTE_SIZE):
+                    xpos (state.lane_x(lane, CHAT_PANEL_WIDTH) - RhythmGameState.NOTE_SIZE // 2)
+                    ypos (y - RhythmGameState.NOTE_SIZE // 2)
+
+            ## Белая вспышка на месте только что пойманной ноты.
+            for lane, y in state.visible_flashes(int(config.screen_height * 0.75)):
+                add Solid("#ffffff", xsize=RhythmGameState.NOTE_SIZE, ysize=RhythmGameState.NOTE_SIZE):
+                    xpos (state.lane_x(lane, CHAT_PANEL_WIDTH) - RhythmGameState.NOTE_SIZE // 2)
+                    ypos (y - RhythmGameState.NOTE_SIZE // 2)
+
+    frame:
+        ysize int(config.screen_height * 0.25)
+        xfill True
+        background None
+
+        fixed:
+            xfill True
+            yfill True
+
+            add Solid("#ae5334") xsize CHAT_PANEL_WIDTH ysize 1 ypos 0
+
+            for lane, arrow in [("left", u"\u2190"), ("up", u"\u2191"), ("down", u"\u2193"), ("right", u"\u2192")]:
+                $ _arrow_color = "#ffffff" if renpy.time.time() < state.lane_flash_until.get(lane, 0.0) else "#ae5334"
+                text arrow:
+                    font "DejaVuSans.ttf"
+                    size 28
+                    color _arrow_color
+                    xpos (state.lane_x(lane, CHAT_PANEL_WIDTH))
+                    xanchor 0.5
+                    ypos 20
+
+            ## Счётчик успешных/провальных нажатий — под стрелками.
+            text ("%+d" % state.score if state.score != 0 else "0"):
+                font FONT_BODY
+                size 25
+                color "#ffffff"
+                text_align 0.0
+                xpos 50
+                ypos 90
+
+
+## state=None — обычный самостоятельный запуск (создаёт свой RhythmGameState).
+## state=<готовый RhythmGameState> — продолжение уже "прогретого" предпоказом
+## объекта из rhythm_intro (см. ниже), без пересоздания и без потери прогресса
+## по нотам.
+screen rhythm_game(notes_path, band_track, guitar_track, state=None):
+
+    default _state = state if state is not None else RhythmGameState(notes_path, band_track, guitar_track)
+
+    on "show" action Function(_state.start)
+
+    timer 0.02 repeat True action Function(_state.tick)
+
+    key "K_LEFT" action Function(_state.attempt_hit, "left")
+    key "K_UP" action Function(_state.attempt_hit, "up")
+    key "K_DOWN" action Function(_state.attempt_hit, "down")
+    key "K_RIGHT" action Function(_state.attempt_hit, "right")
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -156,51 +278,15 @@ screen rhythm_game(notes_path, band_track, guitar_track):
             xfill True
             yfill True
 
-            ## Верхняя зона — трек падения нот, той же высоты, что и лента чата.
-            frame:
-                ysize int(config.screen_height * 0.75)
-                xfill True
-                background None
+            use rhythm_track_view(_state)
 
-                fixed:
-                    xfill True
-                    yfill True
-
-                    ## Дорожки-направляющие (тонкие линии), просто для ориентира.
-                    for lane in RhythmGameState.LANES:
-                        add Solid("#ffffff20", xsize=2, ysize=int(config.screen_height * 0.75)):
-                            xpos (state.lane_x(lane, CHAT_PANEL_WIDTH) - 1)
-
-                    ## Сами падающие кружки.
-                    for lane, y in state.visible_notes(int(config.screen_height * 0.75)):
-                        add Solid("#e5322e", xsize=RhythmGameState.NOTE_SIZE, ysize=RhythmGameState.NOTE_SIZE):
-                            xpos (state.lane_x(lane, CHAT_PANEL_WIDTH) - RhythmGameState.NOTE_SIZE // 2)
-                            ypos (y - RhythmGameState.NOTE_SIZE // 2)
-
-            ## Нижняя зона — та самая линия-граница чата вверху этого блока,
-            ## а под ней подписи дорожек (стрелки), просто для ориентира.
-            frame:
-                ysize int(config.screen_height * 0.25)
-                xfill True
-                background None
-
-                fixed:
-                    xfill True
-                    yfill True
-
-                    add Solid("#ae5334") xsize CHAT_PANEL_WIDTH ysize 1 ypos 0
-
-                    for lane, arrow in [("left", u"\u2190"), ("up", u"\u2191"), ("down", u"\u2193"), ("right", u"\u2192")]:
-                        text arrow:
-                            font "DejaVuSans.ttf"
-                            size 28
-                            color "#ae5334"
-                            xpos (state.lane_x(lane, CHAT_PANEL_WIDTH))
-                            xanchor 0.5
-                            ypos 20
-
-    if state.finished:
-        timer 0.001 action Return({"hits": state.hits, "total": len(state.notes)})
+    if _state.finished:
+        timer 0.001 action Return({
+            "hits": _state.hits,
+            "total": len(_state.notes),
+            "score": _state.score,
+            "success": _state.success,
+        })
 
 
 ################################################################################
@@ -215,16 +301,10 @@ screen rhythm_game(notes_path, band_track, guitar_track):
 ##
 ## Использование в script.rpy:
 ##
-##     call screen rhythm_game("verse1.json", ".../band-1.ogg", ".../guitar-1.ogg")
-##     $ verse1_result = _return
+##     call screen rhythm_intro(94, ".../band-2.ogg", ".../guitar-2.ogg", "verse2.json")
+##     $ pregame_state = _return
 ##
-##     $ start_loop(".../band-loop-1.ogg", ".../guitar-loop-1.ogg")
-##     "Текст, который читаем, пока играет луп..."
-##
-##     $ queue_next_verse(".../band-2.ogg", ".../guitar-2.ogg")
-##     call wait_for_track("band", ".../band-2.ogg")
-##
-##     call screen rhythm_game("verse2.json", ".../band-2.ogg", ".../guitar-2.ogg")
+##     call screen rhythm_game("verse2.json", ".../band-2.ogg", ".../guitar-2.ogg", state=pregame_state)
 ##
 ## wait_for_track блокирует сценарий (без анимаций/показа экрана — просто
 ## тихо ждёт), пока текущий повтор лупа не доиграет и на канале не
@@ -251,15 +331,21 @@ init python:
 
 
 ################################################################################
-## Отсчёт перед стартом ритм-игры — по нажатию кнопки "Начать ритм-игру"
-## (см. next_button_label в chat_ui.rpy) луп не обрывается сразу: сперва
-## доигрывает текущий (возможно неполный) КРУГ ЛУПА (bars_per_loop тактов —
-## обычно 4), затем играет ещё один ПОЛНЫЙ круг, и только во время этого
-## второго круга на экране появляются цифры 4-3-2-1 (по одной на КАЖДЫЙ
-## ТАКТ внутри этого круга, а не на каждую долю). Как только отсчёт
-## доходит до конца — verse-треки стартуют жёстко (hard cut), это
-## музыкально бесшовно, потому что момент высчитан точно по темпу лупа,
-## а не подловлен на глаз.
+## Интро с отсчётом ПЕРЕД первым verse — по нажатию кнопки "Начать
+## ритм-игру" луп не обрывается сразу: сперва доигрывает текущий
+## (возможно неполный) КРУГ ЛУПА (bars_per_loop тактов — обычно 4), затем
+## играет ещё один ПОЛНЫЙ круг — во время него на экране идёт отсчёт по
+## тактам, а на ПОСЛЕДНЕМ такте этого круга отсчёт сменяется живым
+## интерфейсом минигры с уже падающими нотами (чтобы игрок успел
+## сориентироваться до реального начала verse). Момент старта verse
+## посчитан точно по темпу лупа, поэтому переход хардкатом бесшовный —
+## как музыкально, так и по внутреннему времени падения нот.
+##
+## Раскладка отсчёта при bars_per_loop=4:
+##   такт 1 — "3"
+##   такт 2 — "2"
+##   такт 3 — "1"
+##   такт 4 — интерфейс минигры (вместо цифры)
 ##
 ## Использование в script.rpy:
 ##
@@ -268,20 +354,24 @@ init python:
 ##     "Мы начинаем с AC/DC — Back in Black."
 ##     $ next_button_label = "Дальше"
 ##
-##     call screen rhythm_countdown(94, ".../band-1.ogg", ".../guitar-1.ogg")
+##     call screen rhythm_intro(94, ".../band-1.ogg", ".../guitar-1.ogg", "verse1.json")
+##     $ pregame_state = _return
 ##
-##     call screen rhythm_game("verse1.json", ".../band-1.ogg", ".../guitar-1.ogg")
+##     call screen rhythm_game("verse1.json", ".../band-1.ogg", ".../guitar-1.ogg", state=pregame_state)
+##
+## ВАЖНО: rhythm_game здесь вызывается с state=pregame_state — это тот же
+## самый RhythmGameState, что уже "прогрелся" во время предпоказа
+## (никакого пересоздания и потери судейства по нотам).
 ##
 ## bpm/beats_per_bar — темп и размер такта лупа (4/4 — beats_per_bar=4).
-## bars_per_loop — сколько тактов в одном круге лупа (по умолчанию 4) —
-## это и определяет, сколько цифр будет в отсчёте (по одной на такт).
+## bars_per_loop — сколько тактов в одном круге лупа (по умолчанию 4).
 ################################################################################
 
 init python:
 
-    class CountdownState(object):
+    class RhythmIntroState(object):
 
-        def __init__(self, bpm, band_verse, guitar_verse, beats_per_bar=4, bars_per_loop=4):
+        def __init__(self, bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4):
             self.bpm = bpm
             self.beats_per_bar = beats_per_bar
             self.bars_per_loop = bars_per_loop
@@ -289,43 +379,108 @@ init python:
             self.bar_length = self.beat_length * beats_per_bar
             self.loop_length = self.bar_length * bars_per_loop
 
+            # Последний такт последнего лупа — вместо цифры в нём уже
+            # показываем интерфейс минигры с падающими нотами.
+            self.preview_bar_index = bars_per_loop - 1
+
             self.band_verse = band_verse
             self.guitar_verse = guitar_verse
 
-            pos = renpy.music.get_pos(channel="band") or 0.0
-            into_loop = pos % self.loop_length
-            # Момент (в системе координат позиции канала "band"), когда
-            # заканчивается текущий (возможно неполный) круг лупа и
-            # начинается тот самый добавочный ПОЛНЫЙ круг с отсчётом.
-            self.phase2_start = pos + (self.loop_length - into_loop)
-            self.phase2_end = self.phase2_start + self.loop_length
+            # Общий на весь показ игровой стейт — создаём его СРАЗУ, ещё
+            # до того, как реально заиграет verse-трек, чтобы падающие
+            # ноты можно было отрисовывать уже во время последнего такта
+            # лупа. Когда наступит хардкат — просто продолжаем с этим же
+            # объектом, никакого пересоздания (см. tick() ниже и
+            # использование state.game при вызове screen rhythm_game).
+            self.game = RhythmGameState(notes_path, band_verse, guitar_verse)
 
+            # renpy.music.get_pos() сбрасывается к 0 при каждом
+            # перезапуске зацикленного трека — она НЕ копится через
+            # повторы. Поэтому ловим сам момент сброса (позиция
+            # скакнула вниз), а не абсолютную "накопленную" точку.
+            self.last_pos = renpy.music.get_pos(channel="band") or 0.0
+            self.loops_seen = 0
             self.done = False
 
+        def current_bar_index(self):
+            bar_index = int(self.last_pos / self.bar_length)
+            return min(bar_index, self.bars_per_loop - 1)
+
+        def show_minigame(self):
+            if self.loops_seen >= 2:
+                return True
+            return self.loops_seen == 1 and self.current_bar_index() >= self.preview_bar_index
+
         def current_number(self):
-            # None — до отсчёта ещё рано (доигрывает неполный круг) или
-            # уже поздно (доиграли, ждём срабатывания done).
+            # "3"-"2"-"1" на первых тактах последнего лупа. На самом
+            # последнем такте (preview_bar_index) вместо цифры уже
+            # интерфейс минигры — тут возвращаем None.
+            if self.loops_seen != 1:
+                return None
+            bar_index = self.current_bar_index()
+            if bar_index >= self.preview_bar_index:
+                return None
+            return self.preview_bar_index - bar_index
+
+        def virtual_song_pos_ms(self):
+            # "Виртуальное" время относительно точно посчитанного
+            # момента старта verse-трека — отрицательное, пока сам
+            # хардкат ещё не наступил, и ровно 0 в момент, когда он
+            # наступает (та же нулевая точка, что и у настоящего
+            # RhythmGameState.song_pos_ms() сразу после старта —
+            # переход бесшовный).
+            return (self.last_pos - self.loop_length) * 1000.0
+
+        def tick(self):
+            if self.done:
+                return
+
             pos = renpy.music.get_pos(channel="band")
             if pos is None:
-                return None
-            if pos < self.phase2_start:
-                return None
-            if pos >= self.phase2_end:
-                if not self.done:
-                    self.done = True
-                    renpy.music.play(self.band_verse, channel="band")
-                    renpy.music.play(self.guitar_verse, channel="guitar")
-                return None
-            bar_index = int((pos - self.phase2_start) / self.bar_length)
-            bar_index = min(bar_index, self.bars_per_loop - 1)
-            return self.bars_per_loop - bar_index
+                return
+
+            if pos + 0.001 < self.last_pos:
+                self.loops_seen += 1
+
+            self.last_pos = pos
+
+            if self.loops_seen >= 2:
+                # Хардкат — ровно посчитанный по темпу лупа момент.
+                self.done = True
+                # Громкость гитары на всякий случай возвращаем к норме —
+                # если во время предпоказа последнего такта (см. ниже)
+                # игрок промазал мимо ноты, канал "guitar" мог быть
+                # приглушён ЕЩЁ ДО того, как реально заиграл verse; та
+                # же защита, что и в start_loop().
+                renpy.music.set_volume(1.0, channel="guitar")
+                self.game.guitar_muted = False
+                self.game.external_now_ms = None
+                self.game.started = True
+                renpy.music.play(self.band_verse, channel="band")
+                renpy.music.play(self.guitar_verse, channel="guitar")
+                return
+
+            if self.loops_seen == 1 and self.current_bar_index() >= self.preview_bar_index:
+                # Последний такт последнего лупа — уже двигаем и судим
+                # ноты минигры на виртуальном времени, хоть verse ещё
+                # не стартовал по-настоящему.
+                self.game.external_now_ms = self.virtual_song_pos_ms()
+                self.game.tick()
 
 
-screen rhythm_countdown(bpm, band_verse, guitar_verse, beats_per_bar=4, bars_per_loop=4):
+screen rhythm_intro(bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4):
 
-    default cd = CountdownState(bpm, band_verse, guitar_verse, beats_per_bar, bars_per_loop)
+    default state = RhythmIntroState(bpm, band_verse, guitar_verse, notes_path, beats_per_bar, bars_per_loop)
 
-    timer 0.02 repeat True action Function(cd.current_number)
+    timer 0.02 repeat True action Function(state.tick)
+
+    ## Как только начался предпоказ (последний такт), можно уже бить по
+    ## нотам — attempt_hit сам разберётся, есть ли поблизости нота,
+    ## опираясь на то же виртуальное время, что и отрисовка.
+    key "K_LEFT" action Function(state.game.attempt_hit, "left")
+    key "K_UP" action Function(state.game.attempt_hit, "up")
+    key "K_DOWN" action Function(state.game.attempt_hit, "down")
+    key "K_RIGHT" action Function(state.game.attempt_hit, "right")
 
     frame:
         xsize CHAT_PANEL_WIDTH
@@ -338,49 +493,106 @@ screen rhythm_countdown(bpm, band_verse, guitar_verse, beats_per_bar=4, bars_per
             xfill True
             yfill True
 
-            frame:
-                ysize int(config.screen_height * 0.75)
-                xfill True
-                background None
+            if state.show_minigame():
+                use rhythm_track_view(state.game)
+            else:
+                frame:
+                    ysize int(config.screen_height * 0.75)
+                    xfill True
+                    background None
 
-                $ number = cd.current_number()
-                if number:
-                    text str(number):
-                        font FONT_HEADING
-                        size 72
-                        color "#ffffff"
-                        xalign 0.5
-                        yalign 0.5
+                    $ number = state.current_number()
+                    if number:
+                        text str(number):
+                            font FONT_HEADING
+                            size 72
+                            color "#ffffff"
+                            xalign 0.5
+                            yalign 0.5
+                    else:
+                        text "Приготовиться":
+                            font FONT_NARRATION
+                            size 20
+                            color "#a9a9a9"
+                            xalign 0.5
+                            yalign 0.5
 
-            frame:
-                ysize int(config.screen_height * 0.25)
-                xfill True
-                background None
+                frame:
+                    ysize int(config.screen_height * 0.25)
+                    xfill True
+                    background None
 
-    if cd.done:
-        timer 0.001 action Return()
+    ## Отдаём наружу уже "прогретый" RhythmGameState — его и нужно
+    ## передать следующим в screen rhythm_game(..., state=...), а не
+    ## создавать заново.
+    if state.done:
+        timer 0.001 action Return(state.game)
 
 
 ################################################################################
-## Тестовый лейбл интро: реплика с лупом на фоне, кнопка "Начать
-## ритм-игру" вместо "Дальше", отсчёт по такту, затем сам verse.
+## Тестовый лейбл интро: реплика с лупом на фоне, отсчёт по такту с
+## предпоказом нот на последнем такте, сам verse без пересоздания стейта,
+## а затем — ветка по результату (успех/провал первого куплета). При
+## провале играет луп и уводит игрока на сольную ритм-игру по той же
+## схеме (интро+отсчёт). Разметка под соло (BPM/такты/аудио/JSON нот)
+## пока заглушка — переиспользует verse1, заменить на реальные ассеты,
+## когда придут.
 ################################################################################
 
 label rhythm_intro_demo:
 
     $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
 
-    $ next_button_label = "Начать ритм-игру"
     "Мы начинаем с AC/DC — Back in Black."
+    "В баре сразу оживляются. Люди за стойкой оборачиваются на нас, очередь у туалета даёт немного шума…"
+
+    $ next_button_label = "Начать ритм-игру"
+    "Я пропеваю первые строчки и все начинают качать головами."
     $ next_button_label = "Дальше"
 
-    call screen rhythm_countdown(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg")
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json")
+    $ pregame_state = _return
 
     call screen rhythm_game(
         "verse1.json",
         "audio/music/back-in-black-band-1.ogg",
         "audio/music/back-in-black-guitar-1.ogg",
+        state=pregame_state,
     )
+    $ verse1_result = _return
+
+    if verse1_result["success"]:
+
+        "В самом конце куплета публика замирает и последние строчки припева мы уже поём вместе."
+        "Второй куплет бар уже ритмично притопывает и прихлопывает в такт песне."
+        think "Всё, они на крючке. Работает безотказно."
+        "Кто-то закидывает купюру в банку."
+        "Я дотягиваю до финального соло и наконец отлипаю от микрофона."
+
+    else:
+
+        $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
+        think "Соберись, Damn. Ты же отлично знаешь этот трек!"
+        "Судя по тому, что мужики за барной стойкой не отлипают от телека, никто особо не заметил как я налажал."
+
+        $ next_button_label = "Сыграть соло"
+        "Ладно, впереди соло, я ещё смогу отыграться и зацепить их."
+        $ next_button_label = "Дальше"
+
+        ## TODO: заменить на реальные BPM/аудио-файлы/JSON нот сольной
+        ## партии, когда разметка придёт — сама схема (rhythm_intro,
+        ## затем rhythm_game с тем же state) уже рабочая.
+        call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json")
+        $ pregame_state = _return
+
+        call screen rhythm_game(
+            "verse1.json",
+            "audio/music/back-in-black-band-1.ogg",
+            "audio/music/back-in-black-guitar-1.ogg",
+            state=pregame_state,
+        )
+        $ solo_result = _return
 
     return
 
