@@ -532,11 +532,12 @@ screen rhythm_intro(bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, 
 ################################################################################
 ## Тестовый лейбл интро: реплика с лупом на фоне, отсчёт по такту с
 ## предпоказом нот на последнем такте, сам verse без пересоздания стейта,
-## а затем — ветка по результату (успех/провал первого куплета). При
-## провале играет луп и уводит игрока на сольную ритм-игру по той же
-## схеме (интро+отсчёт). Разметка под соло (BPM/такты/аудио/JSON нот)
-## пока заглушка — переиспользует verse1, заменить на реальные ассеты,
-## когда придут.
+## а затем — ветка по результату (успех/провал первого куплета). В ОБОИХ
+## случаях дальше играет луп и на последней реплике ветки появляется
+## кнопка "Сыграть соло", уводящая на сольную ритм-игру (verse2.json,
+## back-in-black-band-2.ogg/guitar-2.ogg) по той же схеме (интро+отсчёт).
+## После соло — один раз (без луп) финальный трек *-end.ogg и ветка по
+## результату соло.
 ################################################################################
 
 label rhythm_intro_demo:
@@ -563,11 +564,16 @@ label rhythm_intro_demo:
 
     if verse1_result["success"]:
 
+        $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
         "В самом конце куплета публика замирает и последние строчки припева мы уже поём вместе."
         "Второй куплет бар уже ритмично притопывает и прихлопывает в такт песне."
         think "Всё, они на крючке. Работает безотказно."
         "Кто-то закидывает купюру в банку."
+
+        $ next_button_label = "Сыграть соло"
         "Я дотягиваю до финального соло и наконец отлипаю от микрофона."
+        $ next_button_label = "Дальше"
 
     else:
 
@@ -580,19 +586,38 @@ label rhythm_intro_demo:
         "Ладно, впереди соло, я ещё смогу отыграться и зацепить их."
         $ next_button_label = "Дальше"
 
-        ## TODO: заменить на реальные BPM/аудио-файлы/JSON нот сольной
-        ## партии, когда разметка придёт — сама схема (rhythm_intro,
-        ## затем rhythm_game с тем же state) уже рабочая.
-        call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json")
-        $ pregame_state = _return
+    ## Общий код для соло — сюда ведут ОБЕ ветки (и успех, и провал
+    ## первого куплета), луп на момент этого места уже играет в любом
+    ## случае (см. start_loop() выше в обеих ветках).
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-2.ogg", "audio/music/back-in-black-guitar-2.ogg", "verse2.json")
+    $ pregame_state = _return
 
-        call screen rhythm_game(
-            "verse1.json",
-            "audio/music/back-in-black-band-1.ogg",
-            "audio/music/back-in-black-guitar-1.ogg",
-            state=pregame_state,
-        )
-        $ solo_result = _return
+    call screen rhythm_game(
+        "verse2.json",
+        "audio/music/back-in-black-band-2.ogg",
+        "audio/music/back-in-black-guitar-2.ogg",
+        state=pregame_state,
+    )
+    $ solo_result = _return
+
+    ## Финальный трек — один раз, без луп (play() без loop=True), на тех
+    ## же каналах, что и всё остальное.
+    $ renpy.music.play("audio/music/back-in-black-band-end.ogg", channel="band")
+    $ renpy.music.play("audio/music/back-in-black-guitar-end.ogg", channel="guitar")
+
+    if solo_result["success"]:
+
+        "Я бросаю взгляд на банку и там больше чем было в прошлый раз."
+        "Бар хлопает в такт."
+        "Я заканчиваю соло и даю ещё пару тактов риффа, чтобы мы смогли закончить одновременно."
+        "Митч с Клиффом хорошо знают этот приём и всё проходит гладко, под оглушительный крэш в конце."
+
+    else:
+
+        think "Да ну, блять... Что за херня?!"
+        "Я начинаю терять самообладание и понемногу выходить из себя."
+        "Тем не менее, даю ещё пару тактов риффа, чтобы мы смогли закончить одновременно."
+        "Митч с Клиффом хорошо знают этот приём и хоть здесь всё проходит гладко, под оглушительный крэш в конце."
 
     return
 
