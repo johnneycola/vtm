@@ -463,4 +463,86 @@ label n1_r300_join:
     "Два человека."
     think "Ладно, держитесь!"
 
+    ## feedback.ogg (канал "sfx") мог ещё не доиграть к этому моменту —
+    ## обрываем его резко (без fadeout), чтобы луп начался сразу, без
+    ## паузы и наложения звука.
+    $ renpy.music.stop(channel="sfx", fadeout=0)
+
+    $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
+    "Мы начинаем с AC/DC — Back in Black."
+    "В баре сразу оживляются. Люди за стойкой оборачиваются на нас, очередь у туалета даёт немного шума…"
+
+    $ next_button_label = "Начать ритм-игру"
+    "Я пропеваю первые строчки и все начинают качать головами."
+    $ next_button_label = "Дальше"
+
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json")
+    $ pregame_state = _return
+
+    call screen rhythm_game(
+        "verse1.json",
+        "audio/music/back-in-black-band-1.ogg",
+        "audio/music/back-in-black-guitar-1.ogg",
+        state=pregame_state,
+    )
+    $ verse1_result = _return
+
+    if verse1_result["success"]:
+
+        $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
+        "В самом конце куплета публика замирает и последние строчки припева мы уже поём вместе."
+        "Второй куплет бар уже ритмично притопывает и прихлопывает в такт песне."
+        think "Всё, они на крючке. Работает безотказно."
+        "Кто-то закидывает купюру в банку."
+
+        $ next_button_label = "Сыграть соло"
+        "Я дотягиваю до финального соло и наконец отлипаю от микрофона."
+        $ next_button_label = "Дальше"
+
+    else:
+
+        $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
+        think "Соберись, Damn. Ты же отлично знаешь этот трек!"
+        "Судя по тому, что мужики за барной стойкой не отлипают от телека, никто особо не заметил как я налажал."
+
+        $ next_button_label = "Сыграть соло"
+        "Ладно, впереди соло, я ещё смогу отыграться и зацепить их."
+        $ next_button_label = "Дальше"
+
+    ## Общий код для соло — сюда ведут ОБЕ ветки (и успех, и провал
+    ## первого куплета), луп на момент этого места уже играет в любом
+    ## случае (см. start_loop() выше в обеих ветках).
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-2.ogg", "audio/music/back-in-black-guitar-2.ogg", "verse2.json")
+    $ pregame_state = _return
+
+    call screen rhythm_game(
+        "verse2.json",
+        "audio/music/back-in-black-band-2.ogg",
+        "audio/music/back-in-black-guitar-2.ogg",
+        state=pregame_state,
+    )
+    $ solo_result = _return
+
+    ## Финальный трек — один раз, без луп (play() без loop=True), на тех
+    ## же каналах, что и всё остальное.
+    $ renpy.music.play("audio/music/back-in-black-band-end.ogg", channel="band")
+    $ renpy.music.play("audio/music/back-in-black-guitar-end.ogg", channel="guitar")
+
+    if solo_result["success"]:
+
+        "Я бросаю взгляд на банку и там больше чем было в прошлый раз."
+        "Бар хлопает в такт."
+        "Я заканчиваю соло и даю ещё пару тактов риффа, чтобы мы смогли закончить одновременно."
+        "Митч с Клиффом хорошо знают этот приём и всё проходит гладко, под оглушительный крэш в конце."
+
+    else:
+
+        think "Да ну, блять... Что за херня?!"
+        "Я начинаю терять самообладание и понемногу выходить из себя."
+        "Тем не менее, даю ещё пару тактов риффа, чтобы мы смогли закончить одновременно."
+        "Митч с Клиффом хорошо знают этот приём и хоть здесь всё проходит гладко, под оглушительный крэш в конце."
+
     return
