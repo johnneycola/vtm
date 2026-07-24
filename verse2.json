@@ -128,15 +128,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 15957,
-    "lane": "left"
-  },
-  {
     "time_ms": 16117,
-    "lane": "left"
-  },
-  {
-    "time_ms": 16277,
     "lane": "left"
   },
   {
@@ -168,15 +160,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 20585,
-    "lane": "left"
-  },
-  {
     "time_ms": 20745,
-    "lane": "left"
-  },
-  {
-    "time_ms": 20904,
     "lane": "left"
   },
   {
@@ -184,15 +168,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 21223,
-    "lane": "left"
-  },
-  {
     "time_ms": 21543,
-    "lane": "left"
-  },
-  {
-    "time_ms": 21702,
     "lane": "left"
   },
   {
@@ -200,15 +176,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 22181,
-    "lane": "left"
-  },
-  {
     "time_ms": 22500,
-    "lane": "left"
-  },
-  {
-    "time_ms": 22660,
     "lane": "left"
   },
   {
@@ -216,15 +184,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 23138,
-    "lane": "left"
-  },
-  {
     "time_ms": 23298,
-    "lane": "left"
-  },
-  {
-    "time_ms": 23457,
     "lane": "left"
   },
   {
@@ -232,15 +192,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 23777,
-    "lane": "left"
-  },
-  {
     "time_ms": 24096,
-    "lane": "left"
-  },
-  {
-    "time_ms": 24255,
     "lane": "left"
   },
   {
@@ -248,15 +200,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 24734,
-    "lane": "left"
-  },
-  {
     "time_ms": 25053,
-    "lane": "left"
-  },
-  {
-    "time_ms": 25213,
     "lane": "left"
   },
   {
@@ -264,15 +208,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 25691,
-    "lane": "left"
-  },
-  {
     "time_ms": 25851,
-    "lane": "left"
-  },
-  {
-    "time_ms": 26011,
     "lane": "left"
   },
   {
@@ -280,15 +216,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 26330,
-    "lane": "left"
-  },
-  {
     "time_ms": 26649,
-    "lane": "left"
-  },
-  {
-    "time_ms": 26809,
     "lane": "left"
   },
   {
@@ -296,15 +224,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 27287,
-    "lane": "left"
-  },
-  {
     "time_ms": 27606,
-    "lane": "left"
-  },
-  {
-    "time_ms": 27766,
     "lane": "left"
   },
   {
@@ -312,15 +232,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 28245,
-    "lane": "left"
-  },
-  {
     "time_ms": 28404,
-    "lane": "left"
-  },
-  {
-    "time_ms": 28564,
     "lane": "left"
   },
   {
@@ -328,15 +240,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 28883,
-    "lane": "left"
-  },
-  {
     "time_ms": 29202,
-    "lane": "left"
-  },
-  {
-    "time_ms": 29362,
     "lane": "left"
   },
   {
@@ -344,15 +248,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 29840,
-    "lane": "left"
-  },
-  {
     "time_ms": 30160,
-    "lane": "left"
-  },
-  {
-    "time_ms": 30319,
     "lane": "left"
   },
   {
@@ -360,15 +256,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 30798,
-    "lane": "down"
-  },
-  {
     "time_ms": 30957,
-    "lane": "down"
-  },
-  {
-    "time_ms": 31117,
     "lane": "down"
   },
   {
@@ -376,47 +264,23 @@
     "lane": "down"
   },
   {
-    "time_ms": 31436,
-    "lane": "left"
-  },
-  {
     "time_ms": 31755,
     "lane": "down"
-  },
-  {
-    "time_ms": 31915,
-    "lane": "left"
   },
   {
     "time_ms": 32234,
     "lane": "down"
   },
   {
-    "time_ms": 32394,
-    "lane": "left"
-  },
-  {
     "time_ms": 32713,
     "lane": "down"
-  },
-  {
-    "time_ms": 32872,
-    "lane": "left"
   },
   {
     "time_ms": 33191,
     "lane": "left"
   },
   {
-    "time_ms": 33351,
-    "lane": "down"
-  },
-  {
     "time_ms": 33511,
-    "lane": "down"
-  },
-  {
-    "time_ms": 33670,
     "lane": "down"
   },
   {
@@ -424,39 +288,19 @@
     "lane": "down"
   },
   {
-    "time_ms": 33989,
-    "lane": "left"
-  },
-  {
     "time_ms": 34309,
     "lane": "down"
-  },
-  {
-    "time_ms": 34468,
-    "lane": "left"
   },
   {
     "time_ms": 34787,
     "lane": "down"
   },
   {
-    "time_ms": 34947,
-    "lane": "left"
-  },
-  {
     "time_ms": 35266,
     "lane": "down"
   },
   {
-    "time_ms": 35426,
-    "lane": "left"
-  },
-  {
     "time_ms": 35745,
-    "lane": "left"
-  },
-  {
-    "time_ms": 35904,
     "lane": "left"
   },
   {
@@ -464,15 +308,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 36223,
-    "lane": "left"
-  },
-  {
     "time_ms": 36383,
-    "lane": "left"
-  },
-  {
-    "time_ms": 36543,
     "lane": "left"
   },
   {
@@ -480,15 +316,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 37021,
-    "lane": "left"
-  },
-  {
     "time_ms": 37340,
-    "lane": "left"
-  },
-  {
-    "time_ms": 37500,
     "lane": "left"
   },
   {
@@ -496,15 +324,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 37979,
-    "lane": "left"
-  },
-  {
     "time_ms": 38298,
-    "lane": "left"
-  },
-  {
-    "time_ms": 38457,
     "lane": "left"
   },
   {
@@ -512,15 +332,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 38777,
-    "lane": "left"
-  },
-  {
     "time_ms": 38936,
-    "lane": "left"
-  },
-  {
-    "time_ms": 39096,
     "lane": "left"
   },
   {
@@ -528,23 +340,11 @@
     "lane": "left"
   },
   {
-    "time_ms": 39574,
-    "lane": "left"
-  },
-  {
     "time_ms": 39894,
     "lane": "left"
   },
   {
-    "time_ms": 40053,
-    "lane": "left"
-  },
-  {
     "time_ms": 40372,
-    "lane": "left"
-  },
-  {
-    "time_ms": 40532,
     "lane": "left"
   },
   {
@@ -604,10 +404,6 @@
     "lane": "left"
   },
   {
-    "time_ms": 47713,
-    "lane": "left"
-  },
-  {
     "time_ms": 48191,
     "lane": "left"
   },
@@ -625,10 +421,6 @@
   },
   {
     "time_ms": 50106,
-    "lane": "left"
-  },
-  {
-    "time_ms": 50266,
     "lane": "left"
   },
   {
@@ -696,15 +488,7 @@
     "lane": "left"
   },
   {
-    "time_ms": 58085,
-    "lane": "left"
-  },
-  {
     "time_ms": 58404,
-    "lane": "left"
-  },
-  {
-    "time_ms": 58564,
     "lane": "left"
   },
   {
@@ -732,10 +516,6 @@
     "lane": "up"
   },
   {
-    "time_ms": 66543,
-    "lane": "up"
-  },
-  {
     "time_ms": 66862,
     "lane": "up"
   },
@@ -744,15 +524,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 67819,
-    "lane": "up"
-  },
-  {
     "time_ms": 67979,
-    "lane": "up"
-  },
-  {
-    "time_ms": 68138,
     "lane": "up"
   },
   {
@@ -760,15 +532,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 69096,
-    "lane": "up"
-  },
-  {
     "time_ms": 69255,
-    "lane": "up"
-  },
-  {
-    "time_ms": 69415,
     "lane": "up"
   },
   {
@@ -784,15 +548,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 71649,
-    "lane": "up"
-  },
-  {
     "time_ms": 71809,
-    "lane": "up"
-  },
-  {
-    "time_ms": 71968,
     "lane": "up"
   },
   {
@@ -800,15 +556,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 72926,
-    "lane": "up"
-  },
-  {
     "time_ms": 73085,
-    "lane": "up"
-  },
-  {
-    "time_ms": 73245,
     "lane": "up"
   },
   {
@@ -816,15 +564,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 74202,
-    "lane": "up"
-  },
-  {
     "time_ms": 74362,
-    "lane": "up"
-  },
-  {
-    "time_ms": 74521,
     "lane": "up"
   },
   {
@@ -836,19 +576,11 @@
     "lane": "right"
   },
   {
-    "time_ms": 76117,
-    "lane": "right"
-  },
-  {
     "time_ms": 76277,
     "lane": "right"
   },
   {
     "time_ms": 76755,
-    "lane": "right"
-  },
-  {
-    "time_ms": 76915,
     "lane": "right"
   },
   {
@@ -860,15 +592,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 78191,
-    "lane": "right"
-  },
-  {
     "time_ms": 78351,
-    "lane": "right"
-  },
-  {
-    "time_ms": 78511,
     "lane": "right"
   },
   {
@@ -876,23 +600,11 @@
     "lane": "right"
   },
   {
-    "time_ms": 79255,
-    "lane": "right"
-  },
-  {
     "time_ms": 79362,
     "lane": "right"
   },
   {
-    "time_ms": 79468,
-    "lane": "right"
-  },
-  {
     "time_ms": 79574,
-    "lane": "right"
-  },
-  {
-    "time_ms": 79681,
     "lane": "right"
   },
   {
@@ -916,15 +628,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 82021,
-    "lane": "right"
-  },
-  {
     "time_ms": 82128,
-    "lane": "right"
-  },
-  {
-    "time_ms": 82234,
     "lane": "right"
   },
   {
@@ -932,23 +636,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 82420,
-    "lane": "right"
-  },
-  {
-    "time_ms": 82500,
-    "lane": "right"
-  },
-  {
     "time_ms": 82580,
-    "lane": "right"
-  },
-  {
-    "time_ms": 82660,
-    "lane": "right"
-  },
-  {
-    "time_ms": 82739,
     "lane": "right"
   },
   {
@@ -956,19 +644,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 82952,
-    "lane": "right"
-  },
-  {
     "time_ms": 83059,
-    "lane": "up"
-  },
-  {
-    "time_ms": 83138,
-    "lane": "up"
-  },
-  {
-    "time_ms": 83218,
     "lane": "up"
   },
   {
@@ -976,23 +652,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 83378,
-    "lane": "down"
-  },
-  {
-    "time_ms": 83457,
-    "lane": "up"
-  },
-  {
     "time_ms": 83537,
-    "lane": "down"
-  },
-  {
-    "time_ms": 83617,
-    "lane": "down"
-  },
-  {
-    "time_ms": 83697,
     "lane": "down"
   },
   {
@@ -1000,27 +660,11 @@
     "lane": "down"
   },
   {
-    "time_ms": 83856,
-    "lane": "left"
-  },
-  {
-    "time_ms": 83936,
-    "lane": "down"
-  },
-  {
     "time_ms": 84016,
     "lane": "left"
   },
   {
-    "time_ms": 84096,
-    "lane": "down"
-  },
-  {
     "time_ms": 84574,
-    "lane": "down"
-  },
-  {
-    "time_ms": 84734,
     "lane": "down"
   },
   {
@@ -1052,10 +696,6 @@
     "lane": "left"
   },
   {
-    "time_ms": 86649,
-    "lane": "right"
-  },
-  {
     "time_ms": 87128,
     "lane": "up"
   },
@@ -1072,10 +712,6 @@
     "lane": "up"
   },
   {
-    "time_ms": 88564,
-    "lane": "up"
-  },
-  {
     "time_ms": 88723,
     "lane": "up"
   },
@@ -1088,15 +724,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 89681,
-    "lane": "right"
-  },
-  {
     "time_ms": 89840,
-    "lane": "right"
-  },
-  {
-    "time_ms": 90000,
     "lane": "right"
   },
   {
@@ -1104,15 +732,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 90319,
-    "lane": "right"
-  },
-  {
     "time_ms": 90479,
-    "lane": "right"
-  },
-  {
-    "time_ms": 90638,
     "lane": "right"
   },
   {
@@ -1120,15 +740,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 90957,
-    "lane": "right"
-  },
-  {
     "time_ms": 91117,
-    "lane": "right"
-  },
-  {
-    "time_ms": 91277,
     "lane": "right"
   },
   {
@@ -1136,15 +748,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 91596,
-    "lane": "right"
-  },
-  {
     "time_ms": 91755,
-    "lane": "right"
-  },
-  {
-    "time_ms": 91915,
     "lane": "right"
   },
   {
@@ -1152,15 +756,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 92234,
-    "lane": "right"
-  },
-  {
     "time_ms": 92394,
-    "lane": "right"
-  },
-  {
-    "time_ms": 92553,
     "lane": "right"
   },
   {
@@ -1168,15 +764,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 92872,
-    "lane": "right"
-  },
-  {
     "time_ms": 93032,
-    "lane": "right"
-  },
-  {
-    "time_ms": 93191,
     "lane": "right"
   },
   {
@@ -1188,15 +776,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 93830,
-    "lane": "right"
-  },
-  {
     "time_ms": 94149,
-    "lane": "right"
-  },
-  {
-    "time_ms": 94309,
     "lane": "right"
   },
   {
@@ -1204,15 +784,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 94787,
-    "lane": "right"
-  },
-  {
     "time_ms": 95106,
-    "lane": "right"
-  },
-  {
-    "time_ms": 95266,
     "lane": "right"
   },
   {
@@ -1220,15 +792,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 95745,
-    "lane": "right"
-  },
-  {
     "time_ms": 96064,
-    "lane": "right"
-  },
-  {
-    "time_ms": 96223,
     "lane": "right"
   },
   {
@@ -1236,15 +800,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 96702,
-    "lane": "right"
-  },
-  {
     "time_ms": 97021,
-    "lane": "right"
-  },
-  {
-    "time_ms": 97181,
     "lane": "right"
   },
   {
@@ -1252,15 +808,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 97500,
-    "lane": "right"
-  },
-  {
     "time_ms": 97660,
-    "lane": "right"
-  },
-  {
-    "time_ms": 97819,
     "lane": "right"
   },
   {
@@ -1268,15 +816,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 98138,
-    "lane": "right"
-  },
-  {
     "time_ms": 98298,
-    "lane": "right"
-  },
-  {
-    "time_ms": 98457,
     "lane": "right"
   },
   {
@@ -1284,15 +824,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 98777,
-    "lane": "right"
-  },
-  {
     "time_ms": 98936,
-    "lane": "right"
-  },
-  {
-    "time_ms": 99096,
     "lane": "right"
   },
   {
@@ -1300,15 +832,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 99415,
-    "lane": "right"
-  },
-  {
     "time_ms": 99574,
-    "lane": "right"
-  },
-  {
-    "time_ms": 99734,
     "lane": "right"
   },
   {
@@ -1316,15 +840,7 @@
     "lane": "right"
   },
   {
-    "time_ms": 100053,
-    "lane": "right"
-  },
-  {
     "time_ms": 100213,
-    "lane": "right"
-  },
-  {
-    "time_ms": 100372,
     "lane": "right"
   },
   {
@@ -1332,23 +848,11 @@
     "lane": "right"
   },
   {
-    "time_ms": 100691,
-    "lane": "right"
-  },
-  {
     "time_ms": 100851,
     "lane": "right"
   },
   {
-    "time_ms": 101011,
-    "lane": "right"
-  },
-  {
     "time_ms": 101170,
-    "lane": "right"
-  },
-  {
-    "time_ms": 101330,
     "lane": "right"
   },
   {
@@ -1360,31 +864,15 @@
     "lane": "right"
   },
   {
-    "time_ms": 102128,
-    "lane": "right"
-  },
-  {
     "time_ms": 102287,
     "lane": "up"
-  },
-  {
-    "time_ms": 102447,
-    "lane": "right"
   },
   {
     "time_ms": 102606,
     "lane": "right"
   },
   {
-    "time_ms": 102766,
-    "lane": "up"
-  },
-  {
     "time_ms": 102926,
-    "lane": "up"
-  },
-  {
-    "time_ms": 103085,
     "lane": "up"
   },
   {
@@ -1392,15 +880,7 @@
     "lane": "up"
   },
   {
-    "time_ms": 103883,
-    "lane": "down"
-  },
-  {
     "time_ms": 104043,
-    "lane": "down"
-  },
-  {
-    "time_ms": 104149,
     "lane": "down"
   },
   {
@@ -1408,23 +888,11 @@
     "lane": "left"
   },
   {
-    "time_ms": 104362,
-    "lane": "down"
-  },
-  {
     "time_ms": 104521,
     "lane": "down"
   },
   {
-    "time_ms": 104681,
-    "lane": "left"
-  },
-  {
     "time_ms": 104840,
-    "lane": "left"
-  },
-  {
-    "time_ms": 105000,
     "lane": "left"
   }
 ]

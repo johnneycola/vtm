@@ -468,7 +468,18 @@ label n1_r300_join:
     ## паузы и наложения звука.
     $ renpy.music.stop(channel="sfx", fadeout=0)
 
+    ## На всё время выступления (все треки back-in-black-...) фоновый
+    ## гул бара выключаем — иначе он будет играть поверх песни.
+    ## Возвращаем его обратно на реплике "Доброй ночи, Ирика!.." ниже.
+    $ renpy.music.stop(channel="ambience", fadeout=1.0)
+
     $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
+
+    hide bg
+    hide damien back
+    pause char_transition_pause
+    $ _band_slideshow.reset()
+    show bg band_random at bg_pos
 
     "Мы начинаем с AC/DC — Back in Black."
     "В баре сразу оживляются. Люди за стойкой оборачиваются на нас, очередь у туалета даёт немного шума…"
@@ -477,7 +488,7 @@ label n1_r300_join:
     "Я пропеваю первые строчки и все начинают качать головами."
     $ next_button_label = "Дальше"
 
-    call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json")
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-1.ogg", "audio/music/back-in-black-guitar-1.ogg", "verse1.json", on_countdown_end=show_playing_bg)
     $ pregame_state = _return
 
     call screen rhythm_game(
@@ -492,6 +503,11 @@ label n1_r300_join:
 
         $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
 
+        hide bg
+        pause char_transition_pause
+        $ _singing_slideshow.reset()
+        show bg singing_random at bg_pos
+
         "В самом конце куплета публика замирает и последние строчки припева мы уже поём вместе."
         "Второй куплет бар уже ритмично притопывает и прихлопывает в такт песне."
         think "Всё, они на крючке. Работает безотказно."
@@ -505,6 +521,11 @@ label n1_r300_join:
 
         $ start_loop("audio/music/back-in-black-band-loop-1.ogg", "audio/music/back-in-black-guitar-loop-1.ogg")
 
+        hide bg
+        pause char_transition_pause
+        $ _singing_slideshow.reset()
+        show bg singing_random at bg_pos
+
         think "Соберись, Damn. Ты же отлично знаешь этот трек!"
         "Судя по тому, что мужики за барной стойкой не отлипают от телека, никто особо не заметил как я налажал."
 
@@ -515,7 +536,7 @@ label n1_r300_join:
     ## Общий код для соло — сюда ведут ОБЕ ветки (и успех, и провал
     ## первого куплета), луп на момент этого места уже играет в любом
     ## случае (см. start_loop() выше в обеих ветках).
-    call screen rhythm_intro(94, "audio/music/back-in-black-band-2.ogg", "audio/music/back-in-black-guitar-2.ogg", "verse2.json")
+    call screen rhythm_intro(94, "audio/music/back-in-black-band-2.ogg", "audio/music/back-in-black-guitar-2.ogg", "verse2.json", on_countdown_end=show_solo_bg)
     $ pregame_state = _return
 
     call screen rhythm_game(
@@ -526,10 +547,21 @@ label n1_r300_join:
     )
     $ solo_result = _return
 
-    ## Финальный трек — один раз, без луп (play() без loop=True), на тех
-    ## же каналах, что и всё остальное.
+    ## Финальный трек стартует СРАЗУ, ещё до визуального перехода —
+    ## та же логика, что у start_loop() в ветках выше: звук уже идёт,
+    ## пока фон меняется, поэтому переход бесшовный, без паузы тишины.
+    ## Громкость канала "guitar" сбрасываем на всякий случай: если
+    ## игрок промазал мимо последней ноты второй ритм-игры,
+    ## mute_guitar() мог оставить канал приглушённым (volume 0) — без
+    ## сброса guitar-end.ogg заиграла бы беззвучно.
+    $ renpy.music.set_volume(1.0, channel="guitar")
     $ renpy.music.play("audio/music/back-in-black-band-end.ogg", channel="band")
     $ renpy.music.play("audio/music/back-in-black-guitar-end.ogg", channel="guitar")
+
+    hide bg
+    pause char_transition_pause
+    $ _band_slideshow.reset()
+    show bg band_random at bg_pos
 
     if solo_result["success"]:
 
@@ -544,5 +576,24 @@ label n1_r300_join:
         "Я начинаю терять самообладание и понемногу выходить из себя."
         "Тем не менее, даю ещё пару тактов риффа, чтобы мы смогли закончить одновременно."
         "Митч с Клиффом хорошо знают этот приём и хоть здесь всё проходит гладко, под оглушительный крэш в конце."
+
+    ## Ждём, пока полностью доиграет финальный трек (*-end.ogg на канале
+    ## "band") — только после этого показываем следующую реплику, чтобы
+    ## музыка не обрывалась и не наслаивалась на новый диалог.
+    call wait_for_channel_silence("band")
+
+    hide bg
+    pause char_transition_pause
+    show bg bar_inside at bg_pos
+    show damien back at damien_back_pos zorder 1
+
+    play sfx "audio/sfx/mic-check.ogg"
+    play ambience "audio/ambience/bar.ogg" fadein 5.0
+
+    d "Доброй ночи, Ирика! Мы здесь проездом, заметили, что у вас в городке слишком тихо и решили это исправить."
+    d "Если вы хотели покурить, то сейчас самое время, потому что дальше мы собираемся сделать кое-что незаконное."
+    "Клифф наклоняется ко мне и шепчет на ухо."
+    cliff "Breaking the Law следующая?"
+    "Я киваю."
 
     return

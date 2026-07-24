@@ -371,13 +371,21 @@ init python:
 
     class RhythmIntroState(object):
 
-        def __init__(self, bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4):
+        def __init__(self, bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4, on_countdown_end=None):
             self.bpm = bpm
             self.beats_per_bar = beats_per_bar
             self.bars_per_loop = bars_per_loop
             self.beat_length = 60.0 / bpm
             self.bar_length = self.beat_length * beats_per_bar
             self.loop_length = self.bar_length * bars_per_loop
+
+            # Вызывается РОВНО ОДИН РАЗ — в момент, когда отсчёт
+            # заканчивается и вместо цифры впервые показывается
+            # интерфейс минигры (последний такт последнего лупа). Нужен,
+            # чтобы можно было переключить фон именно на этом моменте,
+            # а не раньше (см. использование в script.rpy).
+            self.on_countdown_end = on_countdown_end
+            self._countdown_end_fired = False
 
             # Последний такт последнего лупа — вместо цифры в нём уже
             # показываем интерфейс минигры с падающими нотами.
@@ -464,13 +472,17 @@ init python:
                 # Последний такт последнего лупа — уже двигаем и судим
                 # ноты минигры на виртуальном времени, хоть verse ещё
                 # не стартовал по-настоящему.
+                if not self._countdown_end_fired:
+                    self._countdown_end_fired = True
+                    if self.on_countdown_end is not None:
+                        self.on_countdown_end()
                 self.game.external_now_ms = self.virtual_song_pos_ms()
                 self.game.tick()
 
 
-screen rhythm_intro(bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4):
+screen rhythm_intro(bpm, band_verse, guitar_verse, notes_path, beats_per_bar=4, bars_per_loop=4, on_countdown_end=None):
 
-    default state = RhythmIntroState(bpm, band_verse, guitar_verse, notes_path, beats_per_bar, bars_per_loop)
+    default state = RhythmIntroState(bpm, band_verse, guitar_verse, notes_path, beats_per_bar, bars_per_loop, on_countdown_end)
 
     timer 0.02 repeat True action Function(state.tick)
 
@@ -624,6 +636,16 @@ label rhythm_intro_demo:
 
 label wait_for_track(channel, track):
     while renpy.music.get_playing(channel) != track:
+        $ renpy.pause(0.05)
+    return
+
+
+label wait_for_channel_silence(channel):
+    # В отличие от wait_for_track (ждёт, пока НАЧНЁТ играть конкретный
+    # трек), этот ждёт, пока канал полностью ЗАМОЛЧИТ — то есть трек
+    # (без loop=True) доиграл до конца сам. Используется, чтобы не
+    # показывать следующую реплику раньше, чем закончится музыка.
+    while renpy.music.get_playing(channel) is not None:
         $ renpy.pause(0.05)
     return
 
